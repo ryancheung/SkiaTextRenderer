@@ -86,7 +86,7 @@ namespace SkiaTextRenderer
             TextPaint.TextSize = font.Size;
 
             if (font.Style == FontStyle.Italic)
-                TextPaint.TextSkewX = -0.5f;
+                TextPaint.TextSkewX = -0.3f;
             else
                 TextPaint.TextSkewX = 0;
 
