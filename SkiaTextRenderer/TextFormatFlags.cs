@@ -25,8 +25,6 @@ namespace SkiaTextRenderer
         WordBreak = 16,
         // Displays the text in a single line.
         SingleLine = 32,
-        // Height of the bounding rectangle is changed automatically.
-        ResizeHeight = 64,
         // Allows the overhanging parts of glyphs and unwrapped text reaching outside the formatting rectangle to show.
         NoClipping = 256,
         // Includes the font external leading in line height. Typically, external leading is not included in the height of a line of text.
