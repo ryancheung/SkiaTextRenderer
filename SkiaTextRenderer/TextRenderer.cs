@@ -10,6 +10,7 @@ namespace SkiaTextRenderer
         private static readonly string[] NewLineCharacters = new[] { Environment.NewLine, UnicodeCharacters.NewLine.ToString(), UnicodeCharacters.CarriageReturn.ToString() };
 
         private static readonly SKPaint TextPaint = new SKPaint();
+        private static float LineHeight { get => TextPaint.TextSize; }
         private static SKTypeface Typeface;
         private static FontStyle TextStyle;
         private static string Text;
@@ -154,7 +155,7 @@ namespace SkiaTextRenderer
                         LongestLineWidth = measuredWidth;
                 }
 
-                TextDesiredHeight = (int)(TextLines.Count * TextPaint.FontSpacing);
+                TextDesiredHeight = (int)(TextLines.Count * LineHeight);
 
                 ContentSize.Width = (int)(LongestLineWidth + LeftPadding + RightPadding);
                 ContentSize.Height = TextDesiredHeight;
@@ -241,7 +242,7 @@ namespace SkiaTextRenderer
                     LongestLineWidth = measuredWidth;
             }
 
-            TextDesiredHeight = (int)(TextLines.Count * TextPaint.FontSpacing);
+            TextDesiredHeight = (int)(TextLines.Count * LineHeight);
 
             ContentSize.Width = (int)(LongestLineWidth + LeftPadding + RightPadding);
             ContentSize.Height = TextDesiredHeight;
@@ -349,7 +350,7 @@ namespace SkiaTextRenderer
                 // The X and Y coordinates passed to the DrawText method specify the left side of the text at the baseline.
                 pos.Y = bounds.Y;
                 pos.Y -= TextPaint.FontMetrics.Top;
-                pos.Y += LetterOffsetY + lineIndex * TextPaint.FontSpacing;
+                pos.Y += LetterOffsetY + lineIndex * LineHeight;
 
                 if (Flags.HasFlag(TextFormatFlags.ExternalLeading))
                     pos.Y += TextPaint.FontMetrics.Leading;
