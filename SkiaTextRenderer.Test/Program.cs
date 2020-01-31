@@ -14,15 +14,23 @@ namespace SkiaTextRenderer.Test
             Typeface = SKTypeface.FromFile(Path.Combine("Fonts", "simsun.ttf"));
         }
 
+        static string CleanFileName(string fileName)
+        {
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(c, '-');
+            }
+            fileName = fileName.Replace(' ', '-');
+            fileName = fileName.Replace(',', '-');
+
+            return fileName;
+        }
+
         static void TestDraw(string text, float fontSize, TextFormatFlags flags)
         {
             var font = new Font(Typeface, fontSize);
 
-            var fileName = $"{text}-{fontSize}-{flags}.png";
-            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
-            {
-                fileName = fileName.Replace(c, '_');
-            }
+            var fileName = CleanFileName($"{text}-{fontSize}-{flags}.png");
 
             var size = TextRenderer.MeasureText(text, font, 0, flags);
             var BackColour = SKColors.Black;
@@ -48,7 +56,7 @@ namespace SkiaTextRenderer.Test
         {
             var font = new Font(Typeface, fontSize, FontStyle.Italic);
 
-            var fileName = $"italic-{text}-{fontSize}-{flags}.png";
+            var fileName = CleanFileName($"italic-{text}-{fontSize}-{flags}.png");
             foreach (char c in System.IO.Path.GetInvalidFileNameChars())
             {
                 fileName = fileName.Replace(c, '_');
@@ -78,7 +86,7 @@ namespace SkiaTextRenderer.Test
         {
             var font = new Font(Typeface, fontSize, FontStyle.Underline);
 
-            var fileName = $"underline-{text}-{fontSize}-{flags}.png";
+            var fileName = CleanFileName($"underline-{text}-{fontSize}-{flags}.png");
             foreach (char c in System.IO.Path.GetInvalidFileNameChars())
             {
                 fileName = fileName.Replace(c, '_');
@@ -108,7 +116,7 @@ namespace SkiaTextRenderer.Test
         {
             var font = new Font(Typeface, fontSize, FontStyle.Strikeout);
 
-            var fileName = $"strikethrough-{text}-{fontSize}-{flags}.png";
+            var fileName = CleanFileName($"strikethrough-{text}-{fontSize}-{flags}.png");
             foreach (char c in System.IO.Path.GetInvalidFileNameChars())
             {
                 fileName = fileName.Replace(c, '_');
@@ -138,7 +146,7 @@ namespace SkiaTextRenderer.Test
         {
             var font = new Font(Typeface, fontSize);
 
-            var fileName = $"sized-{text}-{fontSize}-{flags}.png";
+            var fileName = CleanFileName($"sized-{text}-{fontSize}-{flags}.png");
             foreach (char c in System.IO.Path.GetInvalidFileNameChars())
             {
                 fileName = fileName.Replace(c, '_');
