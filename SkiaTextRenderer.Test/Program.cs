@@ -174,17 +174,17 @@ namespace SkiaTextRenderer.Test
         static void Main(string[] args)
         {
 
-            TestDraw("Hello 你好 world!", 12, TextFormatFlags.Default);
-            TestDraw("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter);
-            TestDraw("Hello 你好 world!", 12, TextFormatFlags.VerticalCenter);
-            TestDraw("Hello 你好 world!", 12, TextFormatFlags.NoPadding);
-            TestDraw("Hello 你好 world!", 12, TextFormatFlags.LeftAndRightPadding);
+            TestDraw("Hello 你好 world!", 20, TextFormatFlags.Default);
+            TestDraw("Hello 你好 world!", 20, TextFormatFlags.HorizontalCenter);
+            TestDraw("Hello 你好 world!", 20, TextFormatFlags.VerticalCenter);
+            TestDraw("Hello 你好 world!", 20, TextFormatFlags.NoPadding);
+            TestDraw("Hello 你好 world!", 20, TextFormatFlags.LeftAndRightPadding);
 
-            TestDrawItalic("Hello 你好 world!", 12, TextFormatFlags.Default);
-            TestDrawUnderline("Hello 你好 world!", 12, TextFormatFlags.Default);
-            TestDrawStrikeThrough("Hello 你好 world!", 12, TextFormatFlags.Default);
+            TestDrawItalic("Hello 你好 world!", 20, TextFormatFlags.Default);
+            TestDrawUnderline("Hello 你好 world!", 20, TextFormatFlags.Default);
+            TestDrawStrikeThrough("Hello 你好 world!", 20, TextFormatFlags.Default);
 
-            TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.Default, new Size(100, 80));
+            TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.Default, new Size(200, 80));
             TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.VerticalCenter, new Size(100, 80));
             TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80));
             TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80));
