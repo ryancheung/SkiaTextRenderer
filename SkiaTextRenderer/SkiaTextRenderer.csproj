@@ -8,6 +8,7 @@
     <PackageProjectUrl>https://github.com/ryancheung/SkiaTextRenderer</PackageProjectUrl>
     <Copyright>Copyright (c) 2020 ryancheung</Copyright>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
