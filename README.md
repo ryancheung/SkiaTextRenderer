@@ -80,3 +80,8 @@ static void TestDraw(string text, Font font, TextFormatFlags flags)
     }
 }
 ```
+
+### TODO
+
+- Implement `TextFormatFlags.WordEllipsis`
+- Implement `TextFormatFlags.SingleLine`
