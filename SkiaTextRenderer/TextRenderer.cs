@@ -355,6 +355,11 @@ namespace SkiaTextRenderer
                     pos.Y += TextPaint.FontMetrics.UnderlinePosition ?? 0;
                     canvas.DrawLine(new SKPoint(pos.X, pos.Y), new SKPoint(pos.X + line.Width, pos.Y), TextPaint);
                 }
+                else if (TextStyle == FontStyle.Strikeout)
+                {
+                    pos.Y += TextPaint.FontMetrics.StrikeoutPosition ?? 0;
+                    canvas.DrawLine(new SKPoint(pos.X, pos.Y), new SKPoint(pos.X + line.Width, pos.Y), TextPaint);
+                }
 
                 lineIndex++;
             }
