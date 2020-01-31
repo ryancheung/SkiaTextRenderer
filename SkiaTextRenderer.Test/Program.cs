@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using SkiaSharp;
 
@@ -13,13 +14,48 @@ namespace SkiaTextRenderer.Test
             Typeface = SKTypeface.FromFile(Path.Combine("Fonts", "simsun.ttf"));
         }
 
+        static void TestDraw(string text, float fontSize, TextFormatFlags flags)
+        {
+            var font = new Font(Typeface, fontSize);
+
+            var fileName = $"{text}-{fontSize}-{flags}.png";
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(c, '_');
+            }
+
+            var size = TextRenderer.MeasureText(text, font, 0, flags);
+            var BackColour = SKColors.Black;
+
+            using (SKBitmap bitmap = new SKBitmap(size.Width, size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
+            using (var canvas = new SKCanvas(bitmap))
+            {
+                canvas.Clear(BackColour);
+
+                TextRenderer.DrawText(canvas, text, font, new Rectangle(1, 0, size.Width, size.Height), SKColors.White, flags);
+
+                using (Stream s = File.Open(fileName, FileMode.Create))
+                {
+                    SKData d = SKImage.FromBitmap(bitmap).Encode(SKEncodedImageFormat.Png, 100);
+                    d.SaveTo(s);
+                }
+            }
+
+            Console.WriteLine("Drawing {0} (fontSize {1}, flags {2}), measured size: {3}", text, fontSize, flags, size);
+        }
+
         static void Main(string[] args)
         {
-            var font = new Font(Typeface, 12);
 
-            var a = TextRenderer.MeasureText("A", font);
+            // Drawing A with default padding
+            TestDraw("Hello 你好 world!", 12, TextFormatFlags.Default);
+            // Drawing A without default padding
+            TestDraw("Hello 你好 world!", 12, TextFormatFlags.NoPadding);
+            // Drawing A with LeftAndRightPadding
+            TestDraw("Hello 你好 world!", 12, TextFormatFlags.LeftAndRightPadding);
 
-            Console.WriteLine("Measured text size: {0}", a);
+            // Drawing A with LeftAndRightPadding and Horizontal Center
+            TestDraw("Hello 你好 world!", 12, TextFormatFlags.LeftAndRightPadding | TextFormatFlags.HorizontalCenter);
         }
     }
 }

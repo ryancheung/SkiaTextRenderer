@@ -9,20 +9,20 @@ namespace SkiaTextRenderer
     {
         private static readonly string[] NewLineCharacters = new[] { Environment.NewLine, UnicodeCharacters.NewLine.ToString(), UnicodeCharacters.CarriageReturn.ToString() };
 
-        public static readonly SKPaint TextPaint = new SKPaint();
-        public static SKTypeface Typeface;
-
+        private static readonly SKPaint TextPaint = new SKPaint();
+        private static SKTypeface Typeface;
+        private static FontStyle TextStyle;
         private static string Text;
         private static TextFormatFlags Flags;
         private static float MaxLineWidth;
-        private static Size ContentSize = Size.Empty;
-        private static int TextDesiredHeight;
+        private static Rectangle Bounds = Rectangle.Empty;
 
+        private static Size ContentSize = Size.Empty;
         private static float LeftPadding
         {
             get
             {
-                switch(Flags)
+                switch (Flags)
                 {
                     case TextFormatFlags.NoPadding:
                         return 0;
@@ -39,7 +39,7 @@ namespace SkiaTextRenderer
         {
             get
             {
-                switch(Flags)
+                switch (Flags)
                 {
                     case TextFormatFlags.NoPadding:
                         return 0;
@@ -69,6 +69,7 @@ namespace SkiaTextRenderer
             public int OffsetX;
         }
 
+        private static int TextDesiredHeight;
         private static float LongestLineWidth;
         private static List<TextLine> TextLines = new List<TextLine>();
         private static int LetterOffsetY;
@@ -90,6 +91,8 @@ namespace SkiaTextRenderer
                 TextPaint.TextSkewX = -0.5f;
             else
                 TextPaint.TextSkewX = 0;
+
+            TextStyle = font.Style;
         }
         private static int GetFirstCharLength(string textLine, int startIndex)
         {
@@ -254,35 +257,32 @@ namespace SkiaTextRenderer
         {
             switch (Flags)
             {
-                case TextFormatFlags.Left:
-                    foreach (var line in TextLines)
-                        line.OffsetX = 0;
-                    break;
                 case TextFormatFlags.HorizontalCenter:
                     foreach (var line in TextLines)
-                        line.OffsetX = (ContentSize.Width - line.Width) / 2;
+                        line.OffsetX = (Bounds.Width - line.Width) / 2;
                     break;
                 case TextFormatFlags.Right:
                     foreach (var line in TextLines)
                     {
-                        line.OffsetX = ContentSize.Width - line.Width;
+                        line.OffsetX = Bounds.Width - line.Width;
                     }
                     break;
+                case TextFormatFlags.Left:
                 default:
+                    foreach (var line in TextLines)
+                        line.OffsetX = 0;
                     break;
             }
 
             switch (Flags)
             {
-                case TextFormatFlags.Top:
-                    LetterOffsetY = 0;
-                    break;
                 case TextFormatFlags.VerticalCenter:
-                    LetterOffsetY = (ContentSize.Height - TextDesiredHeight) / 2;
+                    LetterOffsetY = (Bounds.Height - TextDesiredHeight) / 2;
                     break;
                 case TextFormatFlags.Bottom:
-                    LetterOffsetY = ContentSize.Height - TextDesiredHeight;
+                    LetterOffsetY = Bounds.Height - TextDesiredHeight;
                     break;
+                case TextFormatFlags.Top:
                 default:
                     LetterOffsetY = 0;
                     break;
@@ -304,8 +304,6 @@ namespace SkiaTextRenderer
                 MultilineTextWrapByWord();
             else
                 MultilineTextWrapByChar();
-
-            ComputeAlignmentOffset();
         }
 
         public static Size MeasureText(string text, Font font)
@@ -330,10 +328,43 @@ namespace SkiaTextRenderer
             return ContentSize;
         }
 
-
-        public static void DrawText(SKCanvas canvas, string text, Font font, Color foreColor, TextFormatFlags flags)
+        public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags)
         {
+            if (string.IsNullOrEmpty(text))
+                return;
 
+            Bounds = bounds;
+            Text = text;
+            Flags = flags;
+            MaxLineWidth = bounds.Width;
+
+            PrepareTextPaint(font);
+
+            AlignText();
+            ComputeAlignmentOffset();
+
+            TextPaint.Color = foreColor;
+
+            var pos = new SKPoint();
+            int lineIndex = 0;
+            foreach (var line in TextLines)
+            {
+                pos.X = line.OffsetX + LeftPadding + bounds.X;
+                // The X and Y coordinates passed to the DrawText method specify the left side of the text at the baseline.
+                pos.Y = bounds.Y;
+                pos.Y -= TextPaint.FontMetrics.Top;
+                pos.Y += LetterOffsetY + lineIndex * TextPaint.FontSpacing;
+
+                canvas.DrawText(line.Text, pos, TextPaint);
+
+                if (TextStyle == FontStyle.Underline)
+                {
+                    pos.Y += TextPaint.FontMetrics.UnderlinePosition ?? 0;
+                    canvas.DrawLine(new SKPoint(pos.X, pos.Y), new SKPoint(pos.X + line.Width, pos.Y), TextPaint);
+                }
+
+                lineIndex++;
+            }
         }
     }
 }
