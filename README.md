@@ -85,3 +85,4 @@ static void TestDraw(string text, Font font, TextFormatFlags flags)
 
 - Implement `TextFormatFlags.WordEllipsis`
 - Implement `TextFormatFlags.SingleLine`
+- Feature to draw caret for TextBox support
