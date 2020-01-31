@@ -351,6 +351,9 @@ namespace SkiaTextRenderer
                 pos.Y -= TextPaint.FontMetrics.Top;
                 pos.Y += LetterOffsetY + lineIndex * TextPaint.FontSpacing;
 
+                if (Flags.HasFlag(TextFormatFlags.ExternalLeading))
+                    pos.Y += TextPaint.FontMetrics.Leading;
+
                 canvas.DrawText(line.Text, pos, TextPaint);
 
                 if (TextStyle == FontStyle.Underline)
