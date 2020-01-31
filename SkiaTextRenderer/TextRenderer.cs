@@ -56,15 +56,15 @@ namespace SkiaTextRenderer
 
         class TextLine
         {
-            public TextLine(string text, int width)
+            public TextLine(string text, float width)
             {
                 Text = text;
                 Width = width;
                 OffsetX = 0;
             }
             public string Text;
-            public int Width;
-            public int OffsetX;
+            public float Width;
+            public float OffsetX;
         }
 
         private static int TextDesiredHeight;
@@ -119,9 +119,7 @@ namespace SkiaTextRenderer
                     break;
                 }
 
-                var letterRect = new SKRect();
-                TextPaint.MeasureText(character.ToString(), ref letterRect);
-                var letterWidth = letterRect.Width;
+                var letterWidth = TextPaint.MeasureText(character.ToString());
 
                 if (MaxLineWidth > 0)
                 {
@@ -146,16 +144,14 @@ namespace SkiaTextRenderer
         {
             var lines = Text.Split(NewLineCharacters, StringSplitOptions.None);
 
-            var rect = new SKRect();
-
             if (MaxLineWidth <= 0)
             {
                 foreach (var line in lines)
                 {
-                    TextPaint.MeasureText(line, ref rect);
-                    TextLines.Add(new TextLine(line, (int)rect.Width));
-                    if (LongestLineWidth < rect.Width)
-                        LongestLineWidth = rect.Width;
+                    var measuredWidth = TextPaint.MeasureText(line);
+                    TextLines.Add(new TextLine(line, measuredWidth));
+                    if (LongestLineWidth < measuredWidth)
+                        LongestLineWidth = measuredWidth;
                 }
 
                 TextDesiredHeight = (int)(TextLines.Count * TextPaint.FontSpacing);
@@ -239,10 +235,10 @@ namespace SkiaTextRenderer
 
             foreach (var line in newLines)
             {
-                TextPaint.MeasureText(line, ref rect);
-                TextLines.Add(new TextLine(line, (int)rect.Width));
-                if (LongestLineWidth < rect.Width)
-                    LongestLineWidth = rect.Width;
+                var measuredWidth = TextPaint.MeasureText(line);
+                TextLines.Add(new TextLine(line, measuredWidth));
+                if (LongestLineWidth < measuredWidth)
+                    LongestLineWidth = measuredWidth;
             }
 
             TextDesiredHeight = (int)(TextLines.Count * TextPaint.FontSpacing);

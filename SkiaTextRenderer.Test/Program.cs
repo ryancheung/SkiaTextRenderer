@@ -32,7 +32,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, new Rectangle(1, 0, size.Width, size.Height), SKColors.White, flags);
+                TextRenderer.DrawText(canvas, text, font, new Rectangle(0, 0, size.Width, size.Height), SKColors.White, flags);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
@@ -47,15 +47,16 @@ namespace SkiaTextRenderer.Test
         static void Main(string[] args)
         {
 
-            // Drawing A with default padding
+            // Drawing A with Default
             TestDraw("Hello 你好 world!", 12, TextFormatFlags.Default);
-            // Drawing A without default padding
+            // Drawing A with Horizontal Center
+            TestDraw("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter);
+            // Drawing A with Vertical Center
+            TestDraw("Hello 你好 world!", 12, TextFormatFlags.VerticalCenter);
+            // Drawing A without padding
             TestDraw("Hello 你好 world!", 12, TextFormatFlags.NoPadding);
             // Drawing A with LeftAndRightPadding
             TestDraw("Hello 你好 world!", 12, TextFormatFlags.LeftAndRightPadding);
-
-            // Drawing A with LeftAndRightPadding and Horizontal Center
-            TestDraw("Hello 你好 world!", 12, TextFormatFlags.LeftAndRightPadding | TextFormatFlags.HorizontalCenter);
         }
     }
 }
