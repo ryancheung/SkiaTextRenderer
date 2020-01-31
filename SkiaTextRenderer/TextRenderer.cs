@@ -22,34 +22,32 @@ namespace SkiaTextRenderer
         {
             get
             {
-                switch (Flags)
-                {
-                    case TextFormatFlags.NoPadding:
-                        return 0;
-                    case TextFormatFlags.GlyphOverhangPadding:
-                        return (float)Math.Ceiling(TextPaint.FontSpacing / 6.0);
-                    case TextFormatFlags.LeftAndRightPadding:
-                        return (float)Math.Ceiling((TextPaint.FontSpacing / 6.0) * 2.0);
-                    default:
-                        return 0;
-                }
+                if (Flags.HasFlag(TextFormatFlags.NoPadding))
+                    return 0;
+
+                if (Flags.HasFlag(TextFormatFlags.LeftAndRightPadding))
+                    return (float)Math.Ceiling((TextPaint.FontSpacing / 6.0) * 2.0);
+
+                if (Flags.HasFlag(TextFormatFlags.GlyphOverhangPadding))
+                    return (float)Math.Ceiling(TextPaint.FontSpacing / 6.0);
+
+                return 0;
             }
         }
         private static float RightPadding
         {
             get
             {
-                switch (Flags)
-                {
-                    case TextFormatFlags.NoPadding:
-                        return 0;
-                    case TextFormatFlags.GlyphOverhangPadding:
-                        return (float)Math.Ceiling((TextPaint.FontSpacing / 6.0) * 1.5);
-                    case TextFormatFlags.LeftAndRightPadding:
-                        return (float)Math.Ceiling((TextPaint.FontSpacing / 6.0) * 2.5);
-                    default:
-                        return 0;
-                }
+                if (Flags.HasFlag(TextFormatFlags.NoPadding))
+                    return 0;
+
+                if (Flags.HasFlag(TextFormatFlags.LeftAndRightPadding))
+                    return (float)Math.Ceiling((TextPaint.FontSpacing / 6.0) * 2.5);
+
+                if (Flags.HasFlag(TextFormatFlags.GlyphOverhangPadding))
+                    return (float)Math.Ceiling((TextPaint.FontSpacing / 6.0) * 1.5);
+
+                return 0;
             }
         }
 
@@ -255,39 +253,38 @@ namespace SkiaTextRenderer
 
         private static void ComputeAlignmentOffset()
         {
-            switch (Flags)
+            if (Flags.HasFlag(TextFormatFlags.HorizontalCenter))
             {
-                case TextFormatFlags.HorizontalCenter:
-                    foreach (var line in TextLines)
-                        line.OffsetX = (Bounds.Width - line.Width) / 2;
-                    break;
-                case TextFormatFlags.Right:
-                    foreach (var line in TextLines)
-                    {
-                        line.OffsetX = Bounds.Width - line.Width;
-                    }
-                    break;
-                case TextFormatFlags.Left:
-                default:
-                    foreach (var line in TextLines)
-                        line.OffsetX = 0;
-                    break;
+                foreach (var line in TextLines)
+                    line.OffsetX = (Bounds.Width - line.Width) / 2;
+            }
+            else if (Flags.HasFlag(TextFormatFlags.Right))
+            {
+                foreach (var line in TextLines)
+                {
+                    line.OffsetX = Bounds.Width - line.Width;
+                }
+            }
+            else
+            {
+                foreach (var line in TextLines)
+                    line.OffsetX = 0;
             }
 
-            switch (Flags)
+            if (Flags.HasFlag(TextFormatFlags.VerticalCenter))
             {
-                case TextFormatFlags.VerticalCenter:
-                    LetterOffsetY = (Bounds.Height - TextDesiredHeight) / 2;
-                    break;
-                case TextFormatFlags.Bottom:
-                    LetterOffsetY = Bounds.Height - TextDesiredHeight;
-                    break;
-                case TextFormatFlags.Top:
-                default:
-                    LetterOffsetY = 0;
-                    break;
+                LetterOffsetY = (Bounds.Height - TextDesiredHeight) / 2;
+            }
+            else if (Flags.HasFlag(TextFormatFlags.Bottom))
+            {
+                LetterOffsetY = Bounds.Height - TextDesiredHeight;
+            }
+            else
+            {
+                LetterOffsetY = 0;
             }
         }
+
         private static void AlignText()
         {
             if (string.IsNullOrEmpty(Text))
