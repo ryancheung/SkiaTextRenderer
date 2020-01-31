@@ -56,6 +56,11 @@ The APIs are just like the Winform version. Even [`TextFormatFlags`](https://doc
 
 ![Auto break line with newline character '\n' or '\r' or "\r\n"](https://github.com/ryancheung/SkiaTextRenderer/raw/master/examples/multiline-Hello-你-好-world!-20-Default.png)
 
+### Install
+
+```
+nuget install SkiaTextRenderer
+```
 
 ### Usage
 
