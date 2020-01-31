@@ -342,7 +342,10 @@ namespace SkiaTextRenderer
             int lineIndex = 0;
             foreach (var line in TextLines)
             {
-                pos.X = line.OffsetX + LeftPadding + bounds.X;
+                pos.X = line.OffsetX + bounds.X;
+                if (!Flags.HasFlag(TextFormatFlags.HorizontalCenter))
+                    pos.X += LeftPadding;
+
                 // The X and Y coordinates passed to the DrawText method specify the left side of the text at the baseline.
                 pos.Y = bounds.Y;
                 pos.Y -= TextPaint.FontMetrics.Top;
