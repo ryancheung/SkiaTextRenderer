@@ -52,6 +52,10 @@ The APIs are just like the Winform version. Even [`TextFormatFlags`](https://doc
 
 ![Sized & TextFormatFlags.HorizontalCenter & TextFormatFlags.VerticalCenter & TextFormatFlags.WordBreak](https://github.com/ryancheung/SkiaTextRenderer/raw/master/examples/sized-Hello-你好-world!-12-GlyphOverhangPadding--Left--Top--HorizontalCenter--VerticalCenter--WordBreak.png)
 
+#### Auto break line with newline character '\n' or '\r' or "\r\n"
+
+![Auto break line with newline character '\n' or '\r' or "\r\n"](https://github.com/ryancheung/SkiaTextRenderer/raw/master/examples/multiline-Hello-你-好-world!-20-Default.png)
+
 
 ### Usage
 
