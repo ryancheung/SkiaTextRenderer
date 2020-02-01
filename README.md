@@ -1,3 +1,5 @@
+![](https://github.com/ryancheung/SkiaTextRenderer/workflows/.NET%20Core/badge.svg)
+
 ## A Winform-liked TextRenderer implemented with SkiaSharp
 
 SkiaTextRenderer is a text renderer that simulate the [`System.Windows.Forms.TextRenderer`](https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.textrenderer.drawtext?view=netframework-4.8).
