@@ -11,7 +11,6 @@ namespace SkiaTextRenderer
 
         private static readonly SKPaint TextPaint = new SKPaint();
         private static float LineHeight { get => TextPaint.TextSize; }
-        private static SKTypeface Typeface;
         private static FontStyle TextStyle;
         private static string Text;
         private static TextFormatFlags Flags;
@@ -83,7 +82,7 @@ namespace SkiaTextRenderer
             TextPaint.IsEmbeddedBitmapText = true;
             TextPaint.DeviceKerningEnabled = true;
 
-            Typeface = TextPaint.Typeface = font.Typeface;
+            TextPaint.Typeface = font.Typeface;
             TextPaint.TextSize = font.Size;
 
             if (font.Style == FontStyle.Italic)
@@ -327,14 +326,20 @@ namespace SkiaTextRenderer
             if (string.IsNullOrEmpty(text))
                 return;
 
+            var textAligned = (text == Text && MaxLineWidth == bounds.Width && Flags == flags) &&
+                (TextPaint.Typeface == font.Typeface && TextPaint.TextSize == font.Size && TextStyle == font.Style);
+
+            if (!textAligned)
+            {
+                Text = text;
+                Flags = flags;
+                MaxLineWidth = bounds.Width;
+
+                PrepareTextPaint(font);
+                AlignText();
+            }
+
             Bounds = bounds;
-            Text = text;
-            Flags = flags;
-            MaxLineWidth = bounds.Width;
-
-            PrepareTextPaint(font);
-
-            AlignText();
             ComputeAlignmentOffset();
 
             TextPaint.Color = foreColor;
