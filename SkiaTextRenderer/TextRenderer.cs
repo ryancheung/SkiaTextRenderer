@@ -9,6 +9,7 @@ namespace SkiaTextRenderer
     {
         private static readonly string[] NewLineCharacters = new[] { Environment.NewLine, UnicodeCharacters.NewLine.ToString(), UnicodeCharacters.CarriageReturn.ToString() };
 
+        private static FontCache FontCache;
         private static readonly SKPaint TextPaint = new SKPaint();
         private static float LineHeight { get => TextPaint.TextSize; }
         private static FontStyle TextStyle;
@@ -54,28 +55,28 @@ namespace SkiaTextRenderer
         private static bool EnableWrap { get => (Flags & TextFormatFlags.NoClipping) == 0; }
         private static bool LineBreakWithoutSpaces { get => (Flags & TextFormatFlags.WordBreak) == 0; }
 
-        class TextLine
-        {
-            public TextLine(string text, float width)
-            {
-                Text = text;
-                Width = width;
-                OffsetX = 0;
-            }
-            public string Text;
-            public float Width;
-            public float OffsetX;
-        }
-
+        private static int NumberOfLines;
         private static int TextDesiredHeight;
-        private static float LongestLineWidth;
-        private static List<TextLine> TextLines = new List<TextLine>();
+        private static List<float> LinesWidth = new List<float>();
+        private static List<float> LinesOffsetX = new List<float>();
         private static int LetterOffsetY;
+
+        class LetterInfo
+        {
+            public char Character;
+            public bool Valid;
+            public float PositionX;
+            public float PositionY;
+            public int LineIndex;
+        }
+        private static List<LetterInfo> LettersInfo = new List<LetterInfo>();
 
         private delegate int GetFirstCharOrWordLength(string textLine, int startIndex);
 
         private static void PrepareTextPaint(Font font)
         {
+            FontCache = FontCache.GetCache(font.Typeface, font.Size);
+
             TextPaint.IsStroke = false;
             TextPaint.HintingLevel = SKPaintHinting.Normal;
             TextPaint.IsAutohinted = true; // Only for freetype
@@ -106,31 +107,57 @@ namespace SkiaTextRenderer
             {
                 var character = textLine[index];
 
-                length++;
-
                 if (character == UnicodeCharacters.NewLine || character == UnicodeCharacters.CarriageReturn
                     || (!Utils.IsUnicodeNonBreaking(character) && (Utils.IsUnicodeSpace(character) || Utils.IsCJKUnicode(character))))
                 {
                     break;
                 }
 
-                if (!TextPaint.ContainsGlyphs(character.ToString()))
+                if (!FontCache.GetLetterDefinitionForChar(character, out var letterDef))
                 {
                     break;
                 }
 
-                var letterWidth = TextPaint.MeasureText(character.ToString());
-
                 if (MaxLineWidth > 0)
                 {
-                    if ((nextLetterX + letterWidth) > MaxLineWidth)
+                    var letterX = nextLetterX + letterDef.OffsetX;
+
+                    if (letterX + letterDef.Width > MaxLineWidth)
                         break;
                 }
 
-                nextLetterX += letterWidth;
+                nextLetterX += letterDef.AdvanceX;
+
+                length++;
             }
 
+            if (length == 0 && textLine.Length > 0)
+                length = 1;
+
             return length;
+        }
+        private static void RecordLetterInfo(SKPoint point, char character, int letterIndex, int lineIndex)
+        {
+            if (letterIndex >= LettersInfo.Count)
+            {
+                LettersInfo.Add(new LetterInfo());
+            }
+
+            LettersInfo[letterIndex].LineIndex = lineIndex;
+            LettersInfo[letterIndex].Character = character;
+            LettersInfo[letterIndex].Valid = FontCache.GetLetterDefinitionForChar(character, out var letterDef) && letterDef.ValidDefinition;
+            LettersInfo[letterIndex].PositionX = point.X;
+            LettersInfo[letterIndex].PositionY = point.Y;
+        }
+        private static void RecordPlaceholderInfo(int letterIndex, char character)
+        {
+            if (letterIndex >= LettersInfo.Count)
+            {
+                LettersInfo.Add(new LetterInfo());
+            }
+
+            LettersInfo[letterIndex].Character = character;
+            LettersInfo[letterIndex].Valid = false;
         }
         private static void MultilineTextWrapByWord()
         {
@@ -142,129 +169,154 @@ namespace SkiaTextRenderer
         }
         private static void MultilineTextWrap(GetFirstCharOrWordLength nextTokenLength)
         {
-            var lines = Text.Split(NewLineCharacters, StringSplitOptions.None);
+            int textLength = Text.Length;
+            int lineIndex = 0;
+            float nextTokenX = 0;
+            float nextTokenY = 0;
+            float longestLine = 0;
+            float letterRight = 0;
+            float nextWhitespaceWidth = 0;
+            FontLetterDefinition letterDef;
+            SKPoint letterPosition = new SKPoint();
+            bool nextChangeSize = true;
 
-            if (MaxLineWidth <= 0)
+            for (int index = 0; index < textLength;)
             {
-                foreach (var line in lines)
+                char character = Text[index];
+                if (character == UnicodeCharacters.NewLine)
                 {
-                    var measuredWidth = TextPaint.MeasureText(line);
-                    TextLines.Add(new TextLine(line, measuredWidth));
-                    if (LongestLineWidth < measuredWidth)
-                        LongestLineWidth = measuredWidth;
+                    LinesWidth.Add(letterRight);
+                    letterRight = 0;
+                    lineIndex++;
+                    nextTokenX = 0;
+                    nextTokenY += LineHeight;
+                    RecordPlaceholderInfo(index, character);
+                    index++;
+                    continue;
                 }
 
-                TextDesiredHeight = (int)(TextLines.Count * LineHeight);
-
-                ContentSize.Width = (int)(LongestLineWidth + LeftPadding + RightPadding);
-                ContentSize.Height = TextDesiredHeight;
-
-                return;
-            }
-
-            List<string> newLines;
-
-            if (EnableWrap)
-            {
-                newLines = new List<string>();
-                for (int i = 0; i < lines.Length; i++)
+                var tokenLen = nextTokenLength(Text, index);
+                float tokenRight = letterRight;
+                float nextLetterX = nextTokenX;
+                float whitespaceWidth = nextWhitespaceWidth;
+                bool newLine = false;
+                for (int tmp = 0; tmp < tokenLen; ++tmp)
                 {
-                    var textLine = lines[i];
-                    int lineBreakIndex = 0;
-                    int nextTokenStartIndex = 0;
-                    int currentLineLength = 0;
-                    int measuredLength = 0;
-
-                    while (true)
+                    int letterIndex = index + tmp;
+                    character = Text[letterIndex];
+                    if (character == UnicodeCharacters.CarriageReturn)
                     {
-                        if (string.IsNullOrEmpty(textLine))
+                        RecordPlaceholderInfo(letterIndex, character);
+                        continue;
+                    }
+
+                    // \b - Next char not change x position
+                    if (character == UnicodeCharacters.NextCharNoChangeX)
+                    {
+                        nextChangeSize = false;
+                        RecordPlaceholderInfo(letterIndex, character);
+                        continue;
+                    }
+
+                    if (!FontCache.GetLetterDefinitionForChar(character, out letterDef))
+                    {
+                        RecordPlaceholderInfo(letterIndex, character);
+                        Console.WriteLine($"TextRenderer.MultilineTextWrap error: can't find letter definition in font file for letter: {character}");
+                        continue;
+                    }
+
+                    var letterX = nextLetterX + letterDef.OffsetX;
+                    if (EnableWrap && MaxLineWidth > 0 && nextTokenX > 0 && letterX + letterDef.Width > MaxLineWidth
+                        && !Utils.IsUnicodeSpace(character) && nextChangeSize)
+                    {
+                        LinesWidth.Add(letterRight - whitespaceWidth);
+                        nextWhitespaceWidth = 0f;
+                        letterRight = 0f;
+                        lineIndex++;
+                        nextTokenX = 0f;
+                        nextTokenY += LineHeight;
+                        newLine = true;
+                        break;
+                    }
+                    else
+                    {
+                        letterPosition.X = letterX;
+                    }
+
+                    letterPosition.Y = nextTokenY + letterDef.OffsetY;
+                    RecordLetterInfo(letterPosition, character, letterIndex, lineIndex);
+
+                    if (nextChangeSize)
+                    {
+                        var newLetterWidth = letterDef.AdvanceX;
+
+                        nextLetterX += newLetterWidth;
+                        tokenRight = nextLetterX;
+
+                        if (Utils.IsUnicodeSpace(character))
                         {
-                            // Draw a blank space for empty newline
-                            newLines.Add(" ");
-                            break;
-                        }
-
-                        currentLineLength += nextTokenLength(textLine, nextTokenStartIndex);
-                        var tempNewLineText = textLine.Substring(lineBreakIndex, currentLineLength);
-                        measuredLength = (int)TextPaint.BreakText(tempNewLineText, MaxLineWidth);
-
-                        if (measuredLength == currentLineLength)
-                        {
-                            nextTokenStartIndex = lineBreakIndex + currentLineLength;
-
-                            if (nextTokenStartIndex < textLine.Length)
-                                continue;
-                            else
-                            {
-                                newLines.Add(tempNewLineText);
-                                break;
-                            }
+                            nextWhitespaceWidth += newLetterWidth;
                         }
                         else
                         {
-                            if (lineBreakIndex == 0 && nextTokenStartIndex == 0) // The first token length is greater than MaxLineWidth
-                            {
-                                if (measuredLength == 0) // The first token length is greater than MaxLineWidth
-                                    measuredLength = 1;
-
-                                newLines.Add(textLine.Substring(lineBreakIndex, measuredLength));
-
-                                if (textLine.Length == measuredLength)
-                                    break;
-
-                                textLine = textLine.Substring(measuredLength);
-                                lineBreakIndex = 0;
-                                nextTokenStartIndex = 0;
-                                currentLineLength = 0;
-                            }
-                            else
-                            {
-                                var previousNewLineText = textLine.Substring(lineBreakIndex, nextTokenStartIndex - lineBreakIndex);
-                                newLines.Add(previousNewLineText);
-                                textLine = textLine.Substring(nextTokenStartIndex);
-                                lineBreakIndex = 0;
-                                nextTokenStartIndex = 0;
-                                currentLineLength = 0;
-                            }
+                            nextWhitespaceWidth = 0;
                         }
                     }
+
+                    nextChangeSize = true;
                 }
+
+                if (newLine)
+                {
+                    continue;
+                }
+
+                nextTokenX = nextLetterX;
+                letterRight = tokenRight;
+
+                index += tokenLen;
+            }
+
+            if (LinesWidth.Count == 0)
+            {
+                LinesWidth.Add(letterRight);
+                longestLine = letterRight;
             }
             else
-                newLines = new List<string>(lines);
-
-            foreach (var line in newLines)
             {
-                var measuredWidth = TextPaint.MeasureText(line);
-                TextLines.Add(new TextLine(line, measuredWidth));
-                if (LongestLineWidth < measuredWidth)
-                    LongestLineWidth = measuredWidth;
+                LinesWidth.Add(letterRight - nextWhitespaceWidth);
+                foreach (var lineWidth in LinesWidth)
+                {
+                    if (longestLine < lineWidth)
+                        longestLine = lineWidth;
+                }
             }
 
-            TextDesiredHeight = (int)(TextLines.Count * LineHeight);
+            NumberOfLines = lineIndex + 1;
+            TextDesiredHeight = (int)(NumberOfLines * LineHeight);
 
-            ContentSize.Width = (int)(LongestLineWidth + LeftPadding + RightPadding);
+            ContentSize.Width = (int)(longestLine + LeftPadding + RightPadding);
             ContentSize.Height = TextDesiredHeight;
         }
 
         private static void ComputeAlignmentOffset()
         {
+            LinesOffsetX.Clear();
+
             if (Flags.HasFlag(TextFormatFlags.HorizontalCenter))
             {
-                foreach (var line in TextLines)
-                    line.OffsetX = (Bounds.Width - line.Width) / 2;
+                foreach (var lineWidth in LinesWidth)
+                    LinesOffsetX.Add((Bounds.Width - lineWidth) / 2f);
             }
             else if (Flags.HasFlag(TextFormatFlags.Right))
             {
-                foreach (var line in TextLines)
-                {
-                    line.OffsetX = Bounds.Width - line.Width;
-                }
+                foreach (var lineWidth in LinesWidth)
+                    LinesOffsetX.Add(Bounds.Width - lineWidth);
             }
             else
             {
-                foreach (var line in TextLines)
-                    line.OffsetX = 0;
+                for (int i = 0; i < NumberOfLines; i++)
+                    LinesOffsetX.Add(0);
             }
 
             if (Flags.HasFlag(TextFormatFlags.VerticalCenter))
@@ -289,9 +341,11 @@ namespace SkiaTextRenderer
                 return;
             }
 
+            FontCache.PrepareLetterDefinitions(Text);
+
             TextDesiredHeight = 0;
-            TextLines.Clear();
-            LongestLineWidth = 0;
+            LinesWidth.Clear();
+            LettersInfo.Clear();
 
             if (MaxLineWidth > 0 && !LineBreakWithoutSpaces)
                 MultilineTextWrapByWord();
@@ -321,6 +375,8 @@ namespace SkiaTextRenderer
             return ContentSize;
         }
 
+        private static HashSet<int> LinesHadDrawedUnderlines = new HashSet<int>();
+
         public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags)
         {
             if (string.IsNullOrEmpty(text))
@@ -344,37 +400,43 @@ namespace SkiaTextRenderer
 
             TextPaint.Color = foreColor;
 
-            var pos = new SKPoint();
-            int lineIndex = 0;
-            foreach (var line in TextLines)
+            SKPoint[] glyphPositions = new SKPoint[Text.Length];
+
+            if (TextStyle == FontStyle.Underline || TextStyle == FontStyle.Strikeout)
+                LinesHadDrawedUnderlines.Clear();
+
+            for (int i = 0; i < Text.Length; i++)
             {
-                pos.X = line.OffsetX + bounds.X;
+                var letterInfo = LettersInfo[i];
+                var pos = new SKPoint();
+
+                if (!FontCache.GetLetterDefinitionForChar(letterInfo.Character, out var letterDef))
+                    continue;
+
+                pos.X = letterInfo.PositionX + LinesOffsetX[letterInfo.LineIndex] + bounds.X;
                 if (!Flags.HasFlag(TextFormatFlags.HorizontalCenter))
                     pos.X += LeftPadding;
 
-                // The X and Y coordinates passed to the DrawText method specify the left side of the text at the baseline.
-                pos.Y = bounds.Y;
-                pos.Y -= TextPaint.FontMetrics.Top;
-                pos.Y += LetterOffsetY + lineIndex * LineHeight;
+                pos.Y = letterInfo.PositionY + LetterOffsetY + bounds.Y;
 
                 if (Flags.HasFlag(TextFormatFlags.ExternalLeading))
                     pos.Y += TextPaint.FontMetrics.Leading;
 
-                canvas.DrawText(line.Text, pos, TextPaint);
+                glyphPositions[i] = pos;
 
-                if (TextStyle == FontStyle.Underline)
+                if (TextStyle == FontStyle.Underline || TextStyle == FontStyle.Strikeout)
                 {
-                    pos.Y += TextPaint.FontMetrics.UnderlinePosition ?? 0;
-                    canvas.DrawLine(new SKPoint(pos.X, pos.Y), new SKPoint(pos.X + line.Width, pos.Y), TextPaint);
-                }
-                else if (TextStyle == FontStyle.Strikeout)
-                {
-                    pos.Y += TextPaint.FontMetrics.StrikeoutPosition ?? 0;
-                    canvas.DrawLine(new SKPoint(pos.X, pos.Y), new SKPoint(pos.X + line.Width, pos.Y), TextPaint);
-                }
+                    if (LinesHadDrawedUnderlines.Contains(letterInfo.LineIndex))
+                        continue;
 
-                lineIndex++;
+                    pos.Y += TextStyle == FontStyle.Underline ? (TextPaint.FontMetrics.UnderlinePosition ?? 0) : (TextPaint.FontMetrics.StrikeoutPosition ?? 0);
+                    canvas.DrawLine(new SKPoint(pos.X, pos.Y), new SKPoint(pos.X + LinesWidth[i], pos.Y), TextPaint);
+
+                    LinesHadDrawedUnderlines.Add(letterInfo.LineIndex);
+                }
             }
+
+            canvas.DrawPositionedText(Text, glyphPositions, TextPaint);
         }
     }
 }
