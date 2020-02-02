@@ -388,9 +388,9 @@ namespace SkiaTextRenderer
             {
                 Text = text;
                 Flags = flags;
-                MaxLineWidth = bounds.Width;
-
                 PrepareTextPaint(font);
+                MaxLineWidth = bounds.Width - LeftPadding - RightPadding;
+
                 AlignText();
             }
 
