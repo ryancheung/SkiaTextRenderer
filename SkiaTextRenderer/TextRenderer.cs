@@ -403,7 +403,7 @@ namespace SkiaTextRenderer
                 var letterInfo = LettersInfo[i];
                 var pos = new SKPoint();
 
-                if (!FontCache.GetLetterDefinitionForChar(letterInfo.Character, out var letterDef))
+                if (!letterInfo.Valid)
                     continue;
 
                 pos.X = letterInfo.PositionX + LinesOffsetX[letterInfo.LineIndex] + bounds.X;
