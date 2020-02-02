@@ -214,6 +214,7 @@ namespace SkiaTextRenderer.Test
             TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.VerticalCenter, new Size(100, 80));
             TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80));
             TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80));
+            TestDrawWithSize("Hel\nl\r\no 你\n好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine, new Size(80, 20));
 
             TestDrawMultiline("Hello 你\n好 world!", 20, TextFormatFlags.Default);
         }

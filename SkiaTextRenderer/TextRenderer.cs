@@ -52,7 +52,7 @@ namespace SkiaTextRenderer
             }
         }
 
-        private static bool EnableWrap { get => (Flags & TextFormatFlags.NoClipping) == 0; }
+        private static bool EnableWrap { get => (Flags & (TextFormatFlags.NoClipping | TextFormatFlags.SingleLine)) == 0; }
         private static bool LineBreakWithoutSpaces { get => (Flags & TextFormatFlags.WordBreak) == 0; }
 
         private static int NumberOfLines;
@@ -185,11 +185,15 @@ namespace SkiaTextRenderer
                 char character = Text[index];
                 if (character == UnicodeCharacters.NewLine)
                 {
-                    LinesWidth.Add(letterRight);
-                    letterRight = 0;
-                    lineIndex++;
-                    nextTokenX = 0;
-                    nextTokenY += LineHeight;
+                    if (!Flags.HasFlag(TextFormatFlags.SingleLine))
+                    {
+                        LinesWidth.Add(letterRight);
+                        letterRight = 0;
+                        lineIndex++;
+                        nextTokenX = 0;
+                        nextTokenY += LineHeight;
+                    }
+
                     RecordPlaceholderInfo(index, character);
                     index++;
                     continue;

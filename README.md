@@ -91,6 +91,5 @@ static void TestDraw(string text, Font font, TextFormatFlags flags)
 ### TODO
 
 - Implement `TextFormatFlags.WordEllipsis`
-- Implement `TextFormatFlags.SingleLine`
 - Feature to return the cursor position of given click position for TextBox support
 - Feature to draw text selection for TextBox support
