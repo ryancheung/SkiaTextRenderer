@@ -423,7 +423,7 @@ namespace SkiaTextRenderer
                         continue;
 
                     pos.Y += TextStyle == FontStyle.Underline ? (TextPaint.FontMetrics.UnderlinePosition ?? 0) : (TextPaint.FontMetrics.StrikeoutPosition ?? 0);
-                    canvas.DrawLine(new SKPoint(pos.X, pos.Y), new SKPoint(pos.X + LinesWidth[i], pos.Y), TextPaint);
+                    canvas.DrawLine(new SKPoint(pos.X, pos.Y), new SKPoint(pos.X + LinesWidth[letterInfo.LineIndex], pos.Y), TextPaint);
 
                     LinesHadDrawedUnderlines.Add(letterInfo.LineIndex);
                 }
