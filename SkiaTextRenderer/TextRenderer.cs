@@ -345,7 +345,6 @@ namespace SkiaTextRenderer
 
             TextDesiredHeight = 0;
             LinesWidth.Clear();
-            LettersInfo.Clear();
 
             if (MaxLineWidth > 0 && !LineBreakWithoutSpaces)
                 MultilineTextWrapByWord();
