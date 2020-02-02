@@ -381,18 +381,12 @@ namespace SkiaTextRenderer
             if (string.IsNullOrEmpty(text))
                 return;
 
-            var textAligned = (text == Text && MaxLineWidth == bounds.Width && Flags == flags) &&
-                (TextPaint.Typeface == font.Typeface && TextPaint.TextSize == font.Size && TextStyle == font.Style);
+            Text = text;
+            Flags = flags;
+            PrepareTextPaint(font);
+            MaxLineWidth = bounds.Width - LeftPadding - RightPadding;
 
-            if (!textAligned)
-            {
-                Text = text;
-                Flags = flags;
-                PrepareTextPaint(font);
-                MaxLineWidth = bounds.Width - LeftPadding - RightPadding;
-
-                AlignText();
-            }
+            AlignText();
 
             Bounds = bounds;
             ComputeAlignmentOffset();
