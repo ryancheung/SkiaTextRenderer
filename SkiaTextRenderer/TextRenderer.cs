@@ -122,7 +122,7 @@ namespace SkiaTextRenderer
                 {
                     var letterX = nextLetterX + letterDef.OffsetX;
 
-                    if (letterX + letterDef.Width > MaxLineWidth)
+                    if (letterX + letterDef.AdvanceX > MaxLineWidth)
                         break;
                 }
 
@@ -226,7 +226,7 @@ namespace SkiaTextRenderer
                     }
 
                     var letterX = nextLetterX + letterDef.OffsetX;
-                    if (EnableWrap && MaxLineWidth > 0 && nextTokenX > 0 && letterX + letterDef.Width > MaxLineWidth
+                    if (EnableWrap && MaxLineWidth > 0 && nextTokenX > 0 && letterX + letterDef.AdvanceX > MaxLineWidth
                         && !Utils.IsUnicodeSpace(character) && nextChangeSize)
                     {
                         LinesWidth.Add(letterRight - whitespaceWidth);
