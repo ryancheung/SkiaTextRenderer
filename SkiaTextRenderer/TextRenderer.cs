@@ -518,8 +518,64 @@ namespace SkiaTextRenderer
             DrawToCanvas(canvas, ref foreColor);
         }
 
+        public static SKPoint GetCursorDrawPosition(string text, Font font, Rectangle bounds, TextFormatFlags flags, int cursorPosition)
+        {
+            if (string.IsNullOrEmpty(text))
+                return SKPoint.Empty;
+
+            Text = text;
+            Flags = flags;
+            PrepareTextPaint(font);
+            MaxLineWidth = bounds.Width - LeftPadding - RightPadding;
+            Bounds = bounds;
+
+            AlignText();
+
+            ComputeAlignmentOffset();
+            ComputeLetterPositionInBounds(ref bounds);
+
+            SKPoint pos = SKPoint.Empty;
+
+            if (cursorPosition < 0)
+                return pos;
+
+            if (cursorPosition >= Text.Length)
+                cursorPosition = Text.Length - 1;
+
+            LetterInfo letterInfo;
+            do
+            {
+                if (cursorPosition >= Text.Length)
+                    return pos;
+
+                letterInfo = LettersInfo[cursorPosition];
+
+                if (!letterInfo.Valid)
+                {
+                    letterInfo = null;
+                    cursorPosition++;
+                    continue;
+                }
+
+                break;
+            } while(letterInfo != null);
+
+            FontCache.GetLetterDefinitionForChar(letterInfo.Character, out var letterDef);
+            pos.X = letterInfo.PositionX + letterDef.AdvanceX;
+            pos.Y = letterInfo.PositionY;
+
+            return pos;
+        }
+
         public static int GetCursorFromPoint(string text, Font font, Rectangle bounds, TextFormatFlags flags, SKPoint point)
         {
+            return GetCursorFromPoint(text, font, bounds, flags, point, out var drawPos);
+        }
+
+        public static int GetCursorFromPoint(string text, Font font, Rectangle bounds, TextFormatFlags flags, SKPoint point, out SKPoint cursorDrawPosition)
+        {
+            cursorDrawPosition = SKPoint.Empty;
+
             if (string.IsNullOrEmpty(text))
                 return -1;
 
@@ -552,16 +608,28 @@ namespace SkiaTextRenderer
                 if (point.X <= letterInfo.PositionX + letterDef.AdvanceX)
                 {
                     if (point.X <= letterInfo.PositionX + letterDef.AdvanceX / 2)
+                    {
+                        cursorDrawPosition.X = letterInfo.PositionX;
+                        cursorDrawPosition.Y = letterInfo.PositionY;
                         return i - 1;
+                    }
                     else
+                    {
+                        cursorDrawPosition.X = letterInfo.PositionX + letterDef.AdvanceX;
+                        cursorDrawPosition.Y = letterInfo.PositionY;
                         return i;
+                    }
                 }
                 else
                 {
                     if (i < Text.Length - 1)
                         continue;
                     else
+                    {
+                        cursorDrawPosition.X = letterInfo.PositionX + letterDef.AdvanceX;
+                        cursorDrawPosition.Y = letterInfo.PositionY;
                         return i;
+                    }
                 }
             }
 
