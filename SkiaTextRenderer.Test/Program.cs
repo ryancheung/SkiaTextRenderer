@@ -223,6 +223,31 @@ namespace SkiaTextRenderer.Test
             Console.WriteLine("Drawing with cursor {0} (fontSize {1}, flags {2}), measured size: {3}", text, fontSize, flags, size);
         }
 
+        static void TestDrawCursorMultiline(string text, float fontSize, TextFormatFlags flags, Size size, int cursorPosition)
+        {
+            var font = new Font(Typeface, fontSize);
+
+            var fileName = CleanFileName($"DrawCursor-sized-cursor({cursorPosition})-{text}-{fontSize}-{flags}.png");
+
+            var BackColour = SKColors.Black;
+
+            using (SKBitmap bitmap = new SKBitmap(size.Width, size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
+            using (var canvas = new SKCanvas(bitmap))
+            {
+                canvas.Clear(BackColour);
+
+                TextRenderer.DrawText(canvas, text, font, new Rectangle(0, 0, size.Width, size.Height), SKColors.White, flags, cursorPosition);
+
+                using (Stream s = File.Open(fileName, FileMode.Create))
+                {
+                    SKData d = SKImage.FromBitmap(bitmap).Encode(SKEncodedImageFormat.Png, 100);
+                    d.SaveTo(s);
+                }
+            }
+
+            Console.WriteLine("Drawing sized with cursor {0} (fontSize {1}, flags {2}), measured size: {3}", text, fontSize, flags, size);
+        }
+
         static void Main(string[] args)
         {
 
@@ -249,6 +274,12 @@ namespace SkiaTextRenderer.Test
             TestDrawCursor("Hello 你好 world!", 20, TextFormatFlags.Default, 1);
             TestDrawCursor("Hello 你好 world!", 20, TextFormatFlags.Default, 6);
             TestDrawCursor("Hello 你好 world!", 20, TextFormatFlags.Default, 14);
+
+            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), -1);
+            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), 2);
+            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), 6);
+            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), 10);
+            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), 14);
         }
     }
 }
