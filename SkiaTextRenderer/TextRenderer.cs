@@ -337,6 +337,28 @@ namespace SkiaTextRenderer
             }
         }
 
+        private static void ComputeLetterPositionInBounds(ref Rectangle bounds)
+        {
+            for (int i = 0; i < Text.Length; i++)
+            {
+                var letterInfo = LettersInfo[i];
+
+                if (!letterInfo.Valid)
+                    continue;
+
+                var posX = letterInfo.PositionX + LinesOffsetX[letterInfo.LineIndex] + bounds.X;
+                if (!Flags.HasFlag(TextFormatFlags.HorizontalCenter))
+                    posX += LeftPadding;
+
+                var posY = letterInfo.PositionY + LetterOffsetY + bounds.Y;
+                if (Flags.HasFlag(TextFormatFlags.ExternalLeading))
+                    posY += TextPaint.FontMetrics.Leading;
+
+                letterInfo.PositionX = posX;
+                letterInfo.PositionY = posY;
+            }
+        }
+
         private static void AlignText()
         {
             if (string.IsNullOrEmpty(Text))
@@ -380,6 +402,40 @@ namespace SkiaTextRenderer
 
         private static HashSet<int> LinesHadDrawedUnderlines = new HashSet<int>();
 
+        private static void DrawToCanvas(SKCanvas canvas, ref SKColor foreColor)
+        {
+            TextPaint.Color = foreColor;
+
+            SKPoint[] glyphPositions = new SKPoint[Text.Length];
+
+            if (TextStyle == FontStyle.Underline || TextStyle == FontStyle.Strikeout)
+                LinesHadDrawedUnderlines.Clear();
+
+            for (int i = 0; i < Text.Length; i++)
+            {
+                var letterInfo = LettersInfo[i];
+
+                if (!letterInfo.Valid)
+                    continue;
+
+                glyphPositions[i] = new SKPoint(letterInfo.PositionX, letterInfo.PositionY);
+
+                if (TextStyle == FontStyle.Underline || TextStyle == FontStyle.Strikeout)
+                {
+                    if (LinesHadDrawedUnderlines.Contains(letterInfo.LineIndex))
+                        continue;
+
+                    var posY = letterInfo.PositionY;
+                    posY += TextStyle == FontStyle.Underline ? (TextPaint.FontMetrics.UnderlinePosition ?? 0) : (TextPaint.FontMetrics.StrikeoutPosition ?? 0);
+                    canvas.DrawLine(new SKPoint(letterInfo.PositionX, posY), new SKPoint(letterInfo.PositionX + LinesWidth[letterInfo.LineIndex], posY), TextPaint);
+
+                    LinesHadDrawedUnderlines.Add(letterInfo.LineIndex);
+                }
+            }
+
+            canvas.DrawPositionedText(Text, glyphPositions, TextPaint);
+        }
+
         public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags)
         {
             if (string.IsNullOrEmpty(text))
@@ -394,46 +450,9 @@ namespace SkiaTextRenderer
 
             Bounds = bounds;
             ComputeAlignmentOffset();
+            ComputeLetterPositionInBounds(ref bounds);
 
-            TextPaint.Color = foreColor;
-
-            SKPoint[] glyphPositions = new SKPoint[Text.Length];
-
-            if (TextStyle == FontStyle.Underline || TextStyle == FontStyle.Strikeout)
-                LinesHadDrawedUnderlines.Clear();
-
-            for (int i = 0; i < Text.Length; i++)
-            {
-                var letterInfo = LettersInfo[i];
-                var pos = new SKPoint();
-
-                if (!letterInfo.Valid)
-                    continue;
-
-                pos.X = letterInfo.PositionX + LinesOffsetX[letterInfo.LineIndex] + bounds.X;
-                if (!Flags.HasFlag(TextFormatFlags.HorizontalCenter))
-                    pos.X += LeftPadding;
-
-                pos.Y = letterInfo.PositionY + LetterOffsetY + bounds.Y;
-
-                if (Flags.HasFlag(TextFormatFlags.ExternalLeading))
-                    pos.Y += TextPaint.FontMetrics.Leading;
-
-                glyphPositions[i] = pos;
-
-                if (TextStyle == FontStyle.Underline || TextStyle == FontStyle.Strikeout)
-                {
-                    if (LinesHadDrawedUnderlines.Contains(letterInfo.LineIndex))
-                        continue;
-
-                    pos.Y += TextStyle == FontStyle.Underline ? (TextPaint.FontMetrics.UnderlinePosition ?? 0) : (TextPaint.FontMetrics.StrikeoutPosition ?? 0);
-                    canvas.DrawLine(new SKPoint(pos.X, pos.Y), new SKPoint(pos.X + LinesWidth[letterInfo.LineIndex], pos.Y), TextPaint);
-
-                    LinesHadDrawedUnderlines.Add(letterInfo.LineIndex);
-                }
-            }
-
-            canvas.DrawPositionedText(Text, glyphPositions, TextPaint);
+            DrawToCanvas(canvas, ref foreColor);
         }
     }
 }
