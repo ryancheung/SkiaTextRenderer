@@ -15,6 +15,26 @@ namespace SkiaTextRenderer
         private static FontStyle TextStyle;
         private static string Text;
         private static TextFormatFlags Flags;
+        private static int? _CursorPosition;
+        private static int? CursorPosition
+        {
+            get => _CursorPosition;
+            set
+            {
+                if (value == null)
+                {
+                    _CursorPosition = null;
+                    return;
+                }
+
+                if (value <= -1)
+                    _CursorPosition = -1;
+                else if (value >= Text.Length - 1)
+                    _CursorPosition = Text.Length - 1;
+                else
+                    _CursorPosition = value;
+            }
+        }
         private static float MaxLineWidth;
         private static Rectangle Bounds = Rectangle.Empty;
 
@@ -399,6 +419,34 @@ namespace SkiaTextRenderer
 
         private static HashSet<int> LinesHadDrawedUnderlines = new HashSet<int>();
 
+        private static void DrawCursor(SKCanvas canvas)
+        {
+            var pos1 = new SKPoint();
+            var pos2 = new SKPoint();
+
+            if (CursorPosition == Text.Length - 1)
+            {
+                var letterInfo = LettersInfo[CursorPosition.Value];
+                FontLetterDefinition letterDef;
+                FontCache.GetLetterDefinitionForChar(letterInfo.Character, out letterDef);
+
+                pos1.X = letterInfo.PositionX + letterDef.AdvanceX;
+                pos1.Y = letterInfo.PositionY;
+                pos2.X = pos1.X;
+                pos2.Y = letterInfo.PositionY + LineHeight;
+            }
+            else
+            {
+                var letterInfo = LettersInfo[CursorPosition.Value + 1];
+                pos1.X = letterInfo.PositionX;
+                pos1.Y = letterInfo.PositionY;
+                pos2.X = pos1.X;
+                pos2.Y = letterInfo.PositionY + LineHeight;
+            }
+
+            canvas.DrawLine(pos1, pos2, TextPaint);
+        }
+
         private static void DrawToCanvas(SKCanvas canvas, ref SKColor foreColor)
         {
             TextPaint.Color = foreColor;
@@ -433,9 +481,12 @@ namespace SkiaTextRenderer
             }
 
             canvas.DrawPositionedText(Text, glyphPositions, TextPaint);
+
+            if (CursorPosition.HasValue)
+                DrawCursor(canvas);
         }
 
-        public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags)
+        public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags, int? cursorPosition = null)
         {
             if (string.IsNullOrEmpty(text))
                 return;
@@ -444,14 +495,65 @@ namespace SkiaTextRenderer
             Flags = flags;
             PrepareTextPaint(font);
             MaxLineWidth = bounds.Width - LeftPadding - RightPadding;
+            Bounds = bounds;
+            CursorPosition = cursorPosition;
 
             AlignText();
 
-            Bounds = bounds;
             ComputeAlignmentOffset();
             ComputeLetterPositionInBounds(ref bounds);
 
             DrawToCanvas(canvas, ref foreColor);
+        }
+
+        public static int GetCursorFromPoint(string text, Font font, Rectangle bounds, TextFormatFlags flags, SKPoint point)
+        {
+            if (string.IsNullOrEmpty(text))
+                return -1;
+
+            Text = text;
+            Flags = flags;
+            PrepareTextPaint(font);
+            MaxLineWidth = bounds.Width - LeftPadding - RightPadding;
+            Bounds = bounds;
+
+            AlignText();
+
+            ComputeAlignmentOffset();
+            ComputeLetterPositionInBounds(ref bounds);
+
+            int lineIndex = (int)(point.Y / LineHeight);
+
+            for (int i = 0; i < Text.Length; i++)
+            {
+                var letterInfo = LettersInfo[i];
+                if (letterInfo.LineIndex != lineIndex || !letterInfo.Valid)
+                    continue;
+
+                FontLetterDefinition letterDef;
+                FontCache.GetLetterDefinitionForChar(letterInfo.Character, out letterDef);
+
+                // Click the left side of the first character
+                if (point.X <= letterInfo.PositionX)
+                    return -1;
+
+                if (point.X <= letterInfo.PositionX + letterDef.AdvanceX)
+                {
+                    if (point.X <= letterInfo.PositionX + letterDef.AdvanceX / 2)
+                        return i - 1;
+                    else
+                        return i;
+                }
+                else
+                {
+                    if (i < Text.Length - 1)
+                        continue;
+                    else
+                        return i;
+                }
+            }
+
+            return -1;
         }
     }
 }
