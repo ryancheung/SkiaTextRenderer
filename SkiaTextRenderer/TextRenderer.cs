@@ -419,6 +419,13 @@ namespace SkiaTextRenderer
 
         private static HashSet<int> LinesHadDrawedUnderlines = new HashSet<int>();
 
+        private static void DrawCursorForEmptyString(SKCanvas canvas, Font font, ref SKColor foreColor)
+        {
+            TextPaint.TextSize = font.Size;
+            TextPaint.Color = foreColor;
+            canvas.DrawLine(new SKPoint(0, 0), new SKPoint(0, LineHeight), TextPaint);
+        }
+
         private static void DrawCursor(SKCanvas canvas)
         {
             var pos1 = new SKPoint();
@@ -489,7 +496,12 @@ namespace SkiaTextRenderer
         public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags, int? cursorPosition = null)
         {
             if (string.IsNullOrEmpty(text))
+            {
+                if (cursorPosition != null)
+                    DrawCursorForEmptyString(canvas, font, ref foreColor);
+
                 return;
+            }
 
             Text = text;
             Flags = flags;
