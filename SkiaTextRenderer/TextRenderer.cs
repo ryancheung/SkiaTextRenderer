@@ -120,9 +120,7 @@ namespace SkiaTextRenderer
 
                 if (MaxLineWidth > 0)
                 {
-                    var letterX = nextLetterX + letterDef.OffsetX;
-
-                    if (letterX + letterDef.AdvanceX > MaxLineWidth)
+                    if (nextLetterX + letterDef.AdvanceX > MaxLineWidth)
                         break;
                 }
 
@@ -229,8 +227,7 @@ namespace SkiaTextRenderer
                         continue;
                     }
 
-                    var letterX = nextLetterX + letterDef.OffsetX;
-                    if (EnableWrap && MaxLineWidth > 0 && nextTokenX > 0 && letterX + letterDef.AdvanceX > MaxLineWidth
+                    if (EnableWrap && MaxLineWidth > 0 && nextTokenX > 0 && nextLetterX + letterDef.AdvanceX > MaxLineWidth
                         && !Utils.IsUnicodeSpace(character) && nextChangeSize)
                     {
                         LinesWidth.Add(letterRight - whitespaceWidth);
@@ -244,10 +241,10 @@ namespace SkiaTextRenderer
                     }
                     else
                     {
-                        letterPosition.X = letterX;
+                        letterPosition.X = nextLetterX;
                     }
 
-                    letterPosition.Y = nextTokenY + letterDef.OffsetY;
+                    letterPosition.Y = nextTokenY;
                     RecordLetterInfo(letterPosition, character, letterIndex, lineIndex);
 
                     if (nextChangeSize)
@@ -418,16 +415,18 @@ namespace SkiaTextRenderer
                 if (!letterInfo.Valid)
                     continue;
 
-                glyphPositions[i] = new SKPoint(letterInfo.PositionX, letterInfo.PositionY);
+                // X and Y coordinates passed to the DrawText method specify the left side of the text at the baseline.
+                // So we need move Y with a ascender.
+                var realPosY = letterInfo.PositionY + FontCache.FontAscender;
+                glyphPositions[i] = new SKPoint(letterInfo.PositionX, realPosY);
 
                 if (TextStyle == FontStyle.Underline || TextStyle == FontStyle.Strikeout)
                 {
                     if (LinesHadDrawedUnderlines.Contains(letterInfo.LineIndex))
                         continue;
 
-                    var posY = letterInfo.PositionY;
-                    posY += TextStyle == FontStyle.Underline ? (TextPaint.FontMetrics.UnderlinePosition ?? 0) : (TextPaint.FontMetrics.StrikeoutPosition ?? 0);
-                    canvas.DrawLine(new SKPoint(letterInfo.PositionX, posY), new SKPoint(letterInfo.PositionX + LinesWidth[letterInfo.LineIndex], posY), TextPaint);
+                    realPosY += TextStyle == FontStyle.Underline ? (TextPaint.FontMetrics.UnderlinePosition ?? 0) : (TextPaint.FontMetrics.StrikeoutPosition ?? 0);
+                    canvas.DrawLine(new SKPoint(letterInfo.PositionX, realPosY), new SKPoint(letterInfo.PositionX + LinesWidth[letterInfo.LineIndex], realPosY), TextPaint);
 
                     LinesHadDrawedUnderlines.Add(letterInfo.LineIndex);
                 }

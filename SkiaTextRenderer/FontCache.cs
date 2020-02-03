@@ -24,16 +24,17 @@ namespace SkiaTextRenderer
             return newFontCache;
         }
 
+        public float FontAscender { get; }
+
         private Dictionary<char, FontLetterDefinition> _LetterDefinitions = new Dictionary<char, FontLetterDefinition>();
         private SKPaint _TextPaint = new SKPaint();
-        private float _FontAscender = 0;
 
         public FontCache(SKTypeface typeface, float fontSize)
         {
             _TextPaint.Typeface = typeface;
             _TextPaint.TextSize = fontSize;
 
-            _FontAscender = -_TextPaint.FontMetrics.Top;
+            FontAscender = -_TextPaint.FontMetrics.Top;
         }
 
         public bool GetLetterDefinitionForChar(char character, out FontLetterDefinition letterDefinition)
@@ -69,7 +70,7 @@ namespace SkiaTextRenderer
             var newCharString = new string(newChars.ToArray());
 
             var glyphs = _TextPaint.GetGlyphs(newCharString);
-            var glyphWidths = _TextPaint.GetGlyphWidths(newCharString, out var glyphBounds);
+            var glyphWidths = _TextPaint.GetGlyphWidths(newCharString);
 
             for (int i = 0; i < glyphs.Length; i++)
             {
@@ -82,10 +83,6 @@ namespace SkiaTextRenderer
                 else
                 {
                     tempDef.ValidDefinition = true;
-                    tempDef.Width = glyphBounds[i].Width;
-                    tempDef.Height = glyphBounds[i].Height;
-                    tempDef.OffsetX = 0;
-                    tempDef.OffsetY = _FontAscender;
                     tempDef.AdvanceX = glyphWidths[i];
 
                     _LetterDefinitions[newCharString[i]] = tempDef;
