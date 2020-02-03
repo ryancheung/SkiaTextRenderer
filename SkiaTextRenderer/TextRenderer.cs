@@ -444,14 +444,64 @@ namespace SkiaTextRenderer
             Flags = flags;
             PrepareTextPaint(font);
             MaxLineWidth = bounds.Width - LeftPadding - RightPadding;
+            Bounds = bounds;
 
             AlignText();
 
-            Bounds = bounds;
             ComputeAlignmentOffset();
             ComputeLetterPositionInBounds(ref bounds);
 
             DrawToCanvas(canvas, ref foreColor);
+        }
+
+        public static int GetCursorFromPoint(string text, Font font, Rectangle bounds, TextFormatFlags flags, SKPoint point)
+        {
+            if (string.IsNullOrEmpty(text))
+                return -1;
+
+            Text = text;
+            Flags = flags;
+            PrepareTextPaint(font);
+            MaxLineWidth = bounds.Width - LeftPadding - RightPadding;
+            Bounds = bounds;
+
+            AlignText();
+
+            ComputeAlignmentOffset();
+            ComputeLetterPositionInBounds(ref bounds);
+
+            int lineIndex = (int)(point.Y / LineHeight);
+
+            for (int i = 0; i < Text.Length; i++)
+            {
+                var letterInfo = LettersInfo[i];
+                if (letterInfo.LineIndex != lineIndex || !letterInfo.Valid)
+                    continue;
+
+                FontLetterDefinition letterDef;
+                FontCache.GetLetterDefinitionForChar(letterInfo.Character, out letterDef);
+
+                // Click the left side of the first character
+                if (point.X <= letterInfo.PositionX)
+                    return -1;
+
+                if (point.X <= letterInfo.PositionX + letterDef.AdvanceX)
+                {
+                    if (point.X <= letterInfo.PositionX + letterDef.AdvanceX / 2)
+                        return i - 1;
+                    else
+                        return i;
+                }
+                else
+                {
+                    if (i < Text.Length - 1)
+                        continue;
+                    else
+                        return i;
+                }
+            }
+
+            return -1;
         }
     }
 }
