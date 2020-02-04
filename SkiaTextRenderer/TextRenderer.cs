@@ -15,26 +15,7 @@ namespace SkiaTextRenderer
         private static FontStyle TextStyle;
         private static string Text;
         private static TextFormatFlags Flags;
-        private static int? _CursorPosition;
-        private static int? CursorPosition
-        {
-            get => _CursorPosition;
-            set
-            {
-                if (value == null)
-                {
-                    _CursorPosition = null;
-                    return;
-                }
-
-                if (value <= -1)
-                    _CursorPosition = -1;
-                else if (value >= Text.Length - 1)
-                    _CursorPosition = Text.Length - 1;
-                else
-                    _CursorPosition = value;
-            }
-        }
+        private static TextPaintOptions PaintOptions;
         private static float MaxLineWidth;
         private static Rectangle Bounds = Rectangle.Empty;
 
@@ -426,14 +407,17 @@ namespace SkiaTextRenderer
             canvas.DrawLine(new SKPoint(0, 0), new SKPoint(0, LineHeight), TextPaint);
         }
 
-        private static void DrawCursor(SKCanvas canvas)
+        private static void DrawCursorIfNeed(SKCanvas canvas)
         {
+            if (PaintOptions == null || PaintOptions.CursorPosition == null)
+                return;
+
             var pos1 = new SKPoint();
             var pos2 = new SKPoint();
 
-            if (CursorPosition == Text.Length - 1)
+            if (PaintOptions.CursorPosition == Text.Length - 1)
             {
-                var letterInfo = LettersInfo[CursorPosition.Value];
+                var letterInfo = LettersInfo[PaintOptions.CursorPosition.Value];
                 FontLetterDefinition letterDef;
                 FontCache.GetLetterDefinitionForChar(letterInfo.Character, out letterDef);
 
@@ -444,7 +428,7 @@ namespace SkiaTextRenderer
             }
             else
             {
-                var letterInfo = LettersInfo[CursorPosition.Value + 1];
+                var letterInfo = LettersInfo[PaintOptions.CursorPosition.Value + 1];
                 pos1.X = letterInfo.PositionX;
                 pos1.Y = letterInfo.PositionY;
                 pos2.X = pos1.X;
@@ -489,15 +473,14 @@ namespace SkiaTextRenderer
 
             canvas.DrawPositionedText(Text, glyphPositions, TextPaint);
 
-            if (CursorPosition.HasValue)
-                DrawCursor(canvas);
+            DrawCursorIfNeed(canvas);
         }
 
-        public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags, int? cursorPosition = null)
+        public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags, TextPaintOptions options)
         {
             if (string.IsNullOrEmpty(text))
             {
-                if (cursorPosition != null)
+                if (options != null && options.CursorPosition != null)
                     DrawCursorForEmptyString(canvas, font, ref foreColor);
 
                 return;
@@ -508,7 +491,10 @@ namespace SkiaTextRenderer
             PrepareTextPaint(font);
             MaxLineWidth = bounds.Width - LeftPadding - RightPadding;
             Bounds = bounds;
-            CursorPosition = cursorPosition;
+            PaintOptions = options;
+
+            if (PaintOptions != null)
+                PaintOptions.EnsureSafeOptionValuesForText(Text);
 
             AlignText();
 
@@ -516,6 +502,19 @@ namespace SkiaTextRenderer
             ComputeLetterPositionInBounds(ref bounds);
 
             DrawToCanvas(canvas, ref foreColor);
+        }
+
+        public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags)
+        {
+            DrawText(canvas, text, font, bounds, foreColor, flags, null);
+        }
+
+        public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags, int cursorPosition)
+        {
+            var options = new TextPaintOptions();
+            options.CursorPosition = cursorPosition;
+
+            DrawText(canvas, text, font, bounds, foreColor, flags, options);
         }
 
         public static SKPoint GetCursorDrawPosition(string text, Font font, Rectangle bounds, TextFormatFlags flags, int cursorPosition)
