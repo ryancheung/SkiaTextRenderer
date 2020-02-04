@@ -52,7 +52,7 @@ namespace SkiaTextRenderer
         {
             _SelectionStart = null;
             _SelectionEnd = null;
-            SelectionColor = SKColors.Empty;
+            SelectionColor = new SKColor(0, 120, 215); // Windows textbox selection color
 
             _CursorPosition = null;
 
