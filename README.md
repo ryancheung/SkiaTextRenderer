@@ -91,5 +91,4 @@ static void TestDraw(string text, Font font, TextFormatFlags flags)
 ### TODO
 
 - Implement `TextFormatFlags.WordEllipsis`
-- Feature to return the cursor position of given click position for TextBox support
-- Feature to draw text selection for TextBox support
+- Support long text drawing with offset defined by cursor position
