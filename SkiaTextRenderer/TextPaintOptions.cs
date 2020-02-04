@@ -74,6 +74,16 @@ namespace SkiaTextRenderer
             EnsureSafeOptionValue(ref _CursorPosition, text);
             EnsureSafeOptionValue(ref _SelectionStart, text);
             EnsureSafeOptionValue(ref _SelectionEnd, text);
+
+            if (_SelectionStart != null && _SelectionEnd != null)
+            {
+                if (_SelectionStart > _SelectionEnd)
+                {
+                    var tmp = _SelectionStart;
+                    _SelectionStart = _SelectionEnd;
+                    _SelectionEnd = tmp;
+                }
+            }
         }
 
         public void Clear()
