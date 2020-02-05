@@ -415,9 +415,9 @@ namespace SkiaTextRenderer
             var pos1 = new SKPoint();
             var pos2 = new SKPoint();
 
-            if (PaintOptions.CursorPosition == Text.Length - 1)
+            if (PaintOptions.CursorPosition == Text.Length)
             {
-                var letterInfo = LettersInfo[PaintOptions.CursorPosition.Value];
+                var letterInfo = LettersInfo[PaintOptions.CursorPosition.Value - 1];
                 FontLetterDefinition letterDef;
                 FontCache.GetLetterDefinitionForChar(letterInfo.Character, out letterDef);
 
@@ -428,7 +428,7 @@ namespace SkiaTextRenderer
             }
             else
             {
-                var letterInfo = LettersInfo[PaintOptions.CursorPosition.Value + 1];
+                var letterInfo = LettersInfo[PaintOptions.CursorPosition.Value];
                 pos1.X = letterInfo.PositionX;
                 pos1.Y = letterInfo.PositionY;
                 pos2.X = pos1.X;
@@ -438,26 +438,40 @@ namespace SkiaTextRenderer
             canvas.DrawLine(pos1, pos2, TextPaint);
         }
 
-        private static void DrawSelectionByStartEndLetter(SKCanvas canvas, LetterInfo startLetter, LetterInfo endLetter)
+        private static void DrawSelectionByStartEndLetter(SKCanvas canvas, LetterInfo startLetter, LetterInfo endLetter, bool afterEndLetter = false)
         {
+            if (startLetter == null || endLetter == null)
+                return;
+
+            if (!startLetter.Valid || !endLetter.Valid)
+                return;
+
             var startPosition = SKPoint.Empty;
             var endPosition = SKPoint.Empty;
 
             startPosition.X = startLetter.PositionX;
             startPosition.Y = startLetter.PositionY;
 
-            float endLetterAdvanceX = 0;
-            if (FontCache.GetLetterDefinitionForChar(endLetter.Character, out var letterDef))
-                endLetterAdvanceX = letterDef.AdvanceX;
-
-            endPosition.X = endLetter.PositionX + endLetterAdvanceX;
+            endPosition.X = endLetter.PositionX;
             endPosition.Y = endLetter.PositionY;
+
+            if (afterEndLetter)
+            {
+                float endLetterAdvanceX = 0;
+                if (FontCache.GetLetterDefinitionForChar(endLetter.Character, out var letterDef))
+                    endLetterAdvanceX = letterDef.AdvanceX;
+
+                endPosition.X += endLetterAdvanceX;
+            }
 
             canvas.DrawRect(startPosition.X, startPosition.Y, endPosition.X - startPosition.X, LineHeight, TextPaint);
         }
 
         private static LetterInfo EnsureValidLetter(int selectionIndex)
         {
+            if (selectionIndex == Text.Length)
+                return null;
+
             var letterInfo = LettersInfo[selectionIndex];
 
             while (!letterInfo.Valid)
@@ -466,7 +480,27 @@ namespace SkiaTextRenderer
 
                 letterInfo = LettersInfo[selectionIndex];
 
-                if (selectionIndex == Text.Length - 1)
+                if (selectionIndex == Text.Length)
+                    break;
+            }
+
+            if (letterInfo.Valid)
+                return letterInfo;
+
+            return null;
+        }
+
+        private static LetterInfo EnsureValidEndLetter(int selectionIndex)
+        {
+            var letterInfo = LettersInfo[selectionIndex];
+
+            while (!letterInfo.Valid)
+            {
+                selectionIndex--;
+
+                letterInfo = LettersInfo[selectionIndex];
+
+                if (selectionIndex == 0)
                     break;
             }
 
@@ -486,74 +520,54 @@ namespace SkiaTextRenderer
 
             TextPaint.Color = PaintOptions.SelectionColor;
 
-            var startLetter = EnsureValidLetter(PaintOptions.SelectionStart.Value + 1);
+            var startLetter = EnsureValidLetter(PaintOptions.SelectionStart.Value);
             var endLetter = EnsureValidLetter(PaintOptions.SelectionEnd.Value);
+
+            bool afterEndLetter = false;
+            if (PaintOptions.SelectionEnd.Value == Text.Length)
+            {
+                afterEndLetter = true;
+                endLetter = EnsureValidEndLetter(PaintOptions.SelectionEnd.Value - 1);
+            }
 
             if (startLetter.LineIndex == endLetter.LineIndex)
             {
-                DrawSelectionByStartEndLetter(canvas, startLetter, endLetter);
+                DrawSelectionByStartEndLetter(canvas, startLetter, endLetter, afterEndLetter);
                 return true;
             }
 
-            for (int i = PaintOptions.SelectionStart.Value + 1; i < PaintOptions.SelectionEnd.Value;)
+            startLetter = null;
+            for (int i = PaintOptions.SelectionStart.Value; i <= PaintOptions.SelectionEnd.Value; i++)
             {
-                var currentLetter = LettersInfo[i];
-                var nextLetterIndex = i + 1;
-                LetterInfo nextLetter = LettersInfo[nextLetterIndex];
-
-                if (!currentLetter.Valid)
+                if (i == PaintOptions.SelectionEnd.Value)
                 {
-                    startLetter = nextLetter;
-                    i++;
-
-                    if (nextLetterIndex == PaintOptions.SelectionEnd)
-                    {
-                        DrawSelectionByStartEndLetter(canvas, nextLetter, nextLetter);
+                    if (startLetter == null)
                         return true;
-                    }
+
+                    var prevLetter = EnsureValidEndLetter(i - 1);
+                    DrawSelectionByStartEndLetter(canvas, startLetter, prevLetter, true);
+
+                    return true;
+                }
+
+                var currentLetter = LettersInfo[i];
+
+                if (startLetter == null && !currentLetter.Valid)
+                    continue;
+
+                if (startLetter == null)
+                {
+                    startLetter = currentLetter;
                     continue;
                 }
 
-                var stop = false;
-                while (!nextLetter.Valid)
+                if ((currentLetter.Character == UnicodeCharacters.NewLine || currentLetter.Character == UnicodeCharacters.CarriageReturn) ||
+                    currentLetter.LineIndex != startLetter.LineIndex)
                 {
-                    nextLetterIndex++;
+                    var prevLetter = EnsureValidEndLetter(i - 1);
+                    DrawSelectionByStartEndLetter(canvas, startLetter, prevLetter, true);
 
-                    nextLetter = LettersInfo[nextLetterIndex];
-
-                    if (nextLetterIndex == PaintOptions.SelectionEnd.Value)
-                    {
-                        DrawSelectionByStartEndLetter(canvas, startLetter, currentLetter);
-                        stop = true;
-                        i++;
-                        break;
-                    }
-                }
-
-                if (stop) continue;
-
-                i += nextLetterIndex - i;
-                if (currentLetter.LineIndex == nextLetter.LineIndex)
-                {
-                    if (nextLetterIndex == PaintOptions.SelectionEnd.Value)
-                    {
-                        DrawSelectionByStartEndLetter(canvas, startLetter, nextLetter);
-                        break;
-                    }
-                    else
-                        continue;
-                }
-                else
-                {
-                    if (nextLetterIndex == PaintOptions.SelectionEnd.Value)
-                    {
-                        DrawSelectionByStartEndLetter(canvas, startLetter, nextLetter);
-                    }
-                    else
-                    {
-                        DrawSelectionByStartEndLetter(canvas, startLetter, currentLetter);
-                        startLetter = nextLetter;
-                    }
+                    startLetter = null;
                 }
             }
 
@@ -662,18 +676,18 @@ namespace SkiaTextRenderer
             ComputeAlignmentOffset();
             ComputeLetterPositionInBounds(ref bounds);
 
-            if (cursorPosition < 0)
+            if (cursorPosition <= 0)
                 return new SKPoint(bounds.X, bounds.Y);
 
-            if (cursorPosition >= Text.Length)
-                cursorPosition = Text.Length - 1;
+            if (cursorPosition > Text.Length)
+                cursorPosition = Text.Length;
 
             SKPoint pos = SKPoint.Empty;
 
             LetterInfo letterInfo;
             do
             {
-                if (cursorPosition >= Text.Length)
+                if (cursorPosition > Text.Length)
                     return pos;
 
                 letterInfo = LettersInfo[cursorPosition];
@@ -689,7 +703,7 @@ namespace SkiaTextRenderer
             } while (letterInfo != null);
 
             FontCache.GetLetterDefinitionForChar(letterInfo.Character, out var letterDef);
-            pos.X = letterInfo.PositionX + letterDef.AdvanceX;
+            pos.X = letterInfo.PositionX;
             pos.Y = letterInfo.PositionY;
 
             return pos;
@@ -705,7 +719,7 @@ namespace SkiaTextRenderer
             cursorDrawPosition = SKPoint.Empty;
 
             if (string.IsNullOrEmpty(text))
-                return -1;
+                return 0;
 
             Text = text;
             Flags = flags;
@@ -731,7 +745,7 @@ namespace SkiaTextRenderer
 
                 // Click the left side of the first character
                 if (point.X <= letterInfo.PositionX)
-                    return -1;
+                    return 0;
 
                 if (point.X <= letterInfo.PositionX + letterDef.AdvanceX)
                 {
@@ -739,29 +753,32 @@ namespace SkiaTextRenderer
                     {
                         cursorDrawPosition.X = letterInfo.PositionX;
                         cursorDrawPosition.Y = letterInfo.PositionY;
-                        return i - 1;
+                        return i;
                     }
                     else
                     {
                         cursorDrawPosition.X = letterInfo.PositionX + letterDef.AdvanceX;
                         cursorDrawPosition.Y = letterInfo.PositionY;
-                        return i;
+                        return i + 1;
                     }
                 }
                 else
                 {
-                    if (i < Text.Length - 1)
-                        continue;
-                    else
+                    if (i < Text.Length)
                     {
-                        cursorDrawPosition.X = letterInfo.PositionX + letterDef.AdvanceX;
-                        cursorDrawPosition.Y = letterInfo.PositionY;
-                        return i;
+                        if (i == Text.Length - 1)
+                        {
+                            cursorDrawPosition.X = letterInfo.PositionX + letterDef.AdvanceX;
+                            cursorDrawPosition.Y = letterInfo.PositionY;
+                            return i + 1;
+                        }
+                        else
+                            continue;
                     }
                 }
             }
 
-            return -1;
+            return 0;
         }
     }
 }

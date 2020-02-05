@@ -333,12 +333,12 @@ namespace SkiaTextRenderer.Test
             TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), 10);
             TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), 14);
 
-            TestDrawSelection("Hello 你好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = -1, SelectionEnd = 2 });
-            TestDrawSelection("Hello 你好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = -1, SelectionEnd = 15 });
+            TestDrawSelection("Hello 你好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = 0, SelectionEnd = 2 });
+            TestDrawSelection("Hello 你好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = 0, SelectionEnd = 15 });
 
-            TestDrawSelectionMultiline("Hello 你\n好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = -1, SelectionEnd = 6 });
-            TestDrawSelectionMultiline("Hello 你\n好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = -1, SelectionEnd = 7 });
-            TestDrawSelectionMultiline("Hello 你\n好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = -1, SelectionEnd = 13 });
+            TestDrawSelectionMultiline("Hello 你\n好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = 0, SelectionEnd = 6 });
+            TestDrawSelectionMultiline("Hello 你\n好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = 0, SelectionEnd = 7 });
+            TestDrawSelectionMultiline("Hello 你\n好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = 0, SelectionEnd = 13 });
             TestDrawSelectionMultiline("Hello 你\n好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = 6, SelectionEnd = 16 });
         }
     }
