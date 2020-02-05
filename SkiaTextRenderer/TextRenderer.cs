@@ -654,7 +654,7 @@ namespace SkiaTextRenderer
         public static SKPoint GetCursorDrawPosition(string text, Font font, Rectangle bounds, TextFormatFlags flags, int cursorPosition)
         {
             if (string.IsNullOrEmpty(text))
-                return SKPoint.Empty;
+                return new SKPoint(bounds.X, bounds.Y);
 
             Text = text;
             Flags = flags;
@@ -667,13 +667,13 @@ namespace SkiaTextRenderer
             ComputeAlignmentOffset();
             ComputeLetterPositionInBounds(ref bounds);
 
-            SKPoint pos = SKPoint.Empty;
-
             if (cursorPosition < 0)
-                return pos;
+                return new SKPoint(bounds.X, bounds.Y);
 
             if (cursorPosition >= Text.Length)
                 cursorPosition = Text.Length - 1;
+
+            SKPoint pos = SKPoint.Empty;
 
             LetterInfo letterInfo;
             do
