@@ -600,12 +600,7 @@ namespace SkiaTextRenderer
             }
 
             if (drawSelection)
-            {
-                if (PaintOptions.CursorPosition == null)
-                    PaintOptions.CursorPosition = PaintOptions.SelectionEnd;
-
                 TextPaint.Color = new SKColor(255, 135, 26);
-            }
 
             DrawCursorIfNeed(canvas);
         }
