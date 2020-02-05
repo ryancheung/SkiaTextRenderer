@@ -63,10 +63,10 @@ namespace SkiaTextRenderer
         {
             if (optionValue == null) return;
 
-            if (optionValue < -1)
-                optionValue = -1;
-            else if (text != null && optionValue > text.Length - 1)
-                optionValue = text.Length - 1;
+            if (optionValue < 0)
+                optionValue = 0;
+            else if (text != null && optionValue > text.Length)
+                optionValue = text.Length;
         }
 
         public void EnsureSafeOptionValuesForText(string text = null)

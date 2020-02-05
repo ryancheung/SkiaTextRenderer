@@ -26,48 +26,48 @@ namespace SkiaTextRenderer.UnitTest
 
             var point = new SKPoint(0, 0);
             var cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(-1, cursor);
+            Assert.AreEqual(0, cursor);
 
             point = new SKPoint(6, 10);
             cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(-1, cursor);
+            Assert.AreEqual(0, cursor);
 
             point = new SKPoint(12, 17);
             cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(0, cursor);
+            Assert.AreEqual(1, cursor);
 
             point = new SKPoint(23, 17);
             cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(1, cursor);
+            Assert.AreEqual(2, cursor);
 
             point = new SKPoint(81, 9);
             cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(6, cursor);
+            Assert.AreEqual(7, cursor);
 
             point = new SKPoint(136, 14);
             cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(10, cursor);
+            Assert.AreEqual(11, cursor);
 
             point = new SKPoint(141, 11);
             cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(11, cursor);
+            Assert.AreEqual(12, cursor);
 
             point = new SKPoint(170, 16);
             cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(14, cursor);
+            Assert.AreEqual(15, cursor);
 
             // Click on the right of last character
             point = new SKPoint(178, 13);
             cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(14, cursor);
+            Assert.AreEqual(15, cursor);
 
             point = new SKPoint(11, -1);
             cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(0, cursor);
+            Assert.AreEqual(1, cursor);
 
             point = new SKPoint(181, 12);
             cursor = TextRenderer.GetCursorFromPoint(text, font, new Rectangle(0, 0, size.Width, size.Height), flags, point);
-            Assert.AreEqual(14, cursor);
+            Assert.AreEqual(15, cursor);
         }
     }
 }
