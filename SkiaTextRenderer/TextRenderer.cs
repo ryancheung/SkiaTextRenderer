@@ -679,30 +679,32 @@ namespace SkiaTextRenderer
             if (cursorPosition <= 0)
                 return new SKPoint(bounds.X, bounds.Y);
 
-            if (cursorPosition > Text.Length)
-                cursorPosition = Text.Length;
-
+            LetterInfo letterInfo;
+            FontLetterDefinition letterDef;
             SKPoint pos = SKPoint.Empty;
 
-            LetterInfo letterInfo;
-            do
+            if (cursorPosition >= Text.Length)
             {
-                if (cursorPosition > Text.Length)
-                    return pos;
+                cursorPosition = Text.Length;
 
-                letterInfo = LettersInfo[cursorPosition];
+                letterInfo = EnsureValidEndLetter(cursorPosition - 1);
 
-                if (!letterInfo.Valid)
-                {
-                    letterInfo = null;
-                    cursorPosition++;
-                    continue;
-                }
+                if (letterInfo == null)
+                    return new SKPoint(bounds.X, bounds.Y);
 
-                break;
-            } while (letterInfo != null);
+                FontCache.GetLetterDefinitionForChar(letterInfo.Character, out letterDef);
+                pos.X = letterInfo.PositionX + letterDef.AdvanceX;
+                pos.Y = letterInfo.PositionY;
 
-            FontCache.GetLetterDefinitionForChar(letterInfo.Character, out var letterDef);
+                return pos;
+            }
+
+            letterInfo = EnsureValidLetter(cursorPosition);
+
+            if (letterInfo == null)
+                return new SKPoint(bounds.X, bounds.Y);
+
+            FontCache.GetLetterDefinitionForChar(letterInfo.Character, out letterDef);
             pos.X = letterInfo.PositionX;
             pos.Y = letterInfo.PositionY;
 
