@@ -11,7 +11,7 @@ namespace SkiaTextRenderer
 
         private static FontCache FontCache;
         private static readonly SKPaint TextPaint = new SKPaint();
-        private static float LineHeight { get => TextPaint.TextSize; }
+        private static float LineHeight { get => TextPaint.FontMetrics.Descent - TextPaint.FontMetrics.Ascent; }
         private static FontStyle TextStyle;
         private static string Text;
         private static TextFormatFlags Flags;

@@ -34,7 +34,7 @@ namespace SkiaTextRenderer
             _TextPaint.Typeface = typeface;
             _TextPaint.TextSize = fontSize;
 
-            FontAscender = -_TextPaint.FontMetrics.Top;
+            FontAscender = -_TextPaint.FontMetrics.Ascent;
         }
 
         public bool GetLetterDefinitionForChar(char character, out FontLetterDefinition letterDefinition)
