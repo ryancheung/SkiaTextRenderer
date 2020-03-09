@@ -17,9 +17,9 @@ namespace SkiaTextRenderer
         private static TextFormatFlags Flags;
         private static TextPaintOptions PaintOptions;
         private static float MaxLineWidth;
-        private static Rectangle Bounds = Rectangle.Empty;
+        private static SKRect Bounds = SKRect.Empty;
 
-        private static Size ContentSize = Size.Empty;
+        private static SKSize ContentSize = SKSize.Empty;
         private static float LeftPadding
         {
             get
@@ -57,10 +57,10 @@ namespace SkiaTextRenderer
         private static bool LineBreakWithoutSpaces { get => (Flags & TextFormatFlags.WordBreak) == 0; }
 
         private static int NumberOfLines;
-        private static int TextDesiredHeight;
+        private static float TextDesiredHeight;
         private static List<float> LinesWidth = new List<float>();
         private static List<float> LinesOffsetX = new List<float>();
-        private static int LetterOffsetY;
+        private static float LetterOffsetY;
 
         class LetterInfo
         {
@@ -295,9 +295,9 @@ namespace SkiaTextRenderer
             }
 
             NumberOfLines = lineIndex + 1;
-            TextDesiredHeight = (int)(NumberOfLines * LineHeight);
+            TextDesiredHeight = NumberOfLines * LineHeight;
 
-            ContentSize.Width = (int)(longestLine + LeftPadding + RightPadding);
+            ContentSize.Width = longestLine + LeftPadding + RightPadding;
             ContentSize.Height = TextDesiredHeight;
         }
 
@@ -335,7 +335,7 @@ namespace SkiaTextRenderer
             }
         }
 
-        private static void ComputeLetterPositionInBounds(ref Rectangle bounds)
+        private static void ComputeLetterPositionInBounds(ref SKRect bounds)
         {
             for (int i = 0; i < Text.Length; i++)
             {
@@ -344,11 +344,11 @@ namespace SkiaTextRenderer
                 if (!letterInfo.Valid)
                     continue;
 
-                var posX = letterInfo.PositionX + LinesOffsetX[letterInfo.LineIndex] + bounds.X;
+                var posX = letterInfo.PositionX + LinesOffsetX[letterInfo.LineIndex] + bounds.Left;
                 if (!Flags.HasFlag(TextFormatFlags.HorizontalCenter))
                     posX += LeftPadding;
 
-                var posY = letterInfo.PositionY + LetterOffsetY + bounds.Y;
+                var posY = letterInfo.PositionY + LetterOffsetY + bounds.Top;
                 if (Flags.HasFlag(TextFormatFlags.ExternalLeading))
                     posY += TextPaint.FontMetrics.Leading;
 
@@ -361,7 +361,7 @@ namespace SkiaTextRenderer
         {
             if (string.IsNullOrEmpty(Text))
             {
-                ContentSize = Size.Empty;
+                ContentSize = SKSize.Empty;
                 return;
             }
 
@@ -376,16 +376,16 @@ namespace SkiaTextRenderer
                 MultilineTextWrapByChar();
         }
 
-        public static Size MeasureText(string text, Font font)
+        public static SKSize MeasureText(string text, Font font)
         {
             return MeasureText(text, font, 0, TextFormatFlags.Default);
         }
-        public static Size MeasureText(string text, Font font, int maxLineWidth)
+        public static SKSize MeasureText(string text, Font font, float maxLineWidth)
         {
             return MeasureText(text, font, maxLineWidth, TextFormatFlags.Default);
         }
 
-        public static Size MeasureText(string text, Font font, float maxLineWidth, TextFormatFlags flags)
+        public static SKSize MeasureText(string text, Font font, float maxLineWidth, TextFormatFlags flags)
         {
             Text = text;
             Flags = flags;
@@ -619,7 +619,7 @@ namespace SkiaTextRenderer
             DrawCursorIfNeed(canvas);
         }
 
-        public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags, TextPaintOptions options)
+        public static void DrawText(SKCanvas canvas, string text, Font font, SKRect bounds, SKColor foreColor, TextFormatFlags flags, TextPaintOptions options)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -647,12 +647,12 @@ namespace SkiaTextRenderer
             DrawToCanvas(canvas, ref foreColor);
         }
 
-        public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags)
+        public static void DrawText(SKCanvas canvas, string text, Font font, SKRect bounds, SKColor foreColor, TextFormatFlags flags)
         {
             DrawText(canvas, text, font, bounds, foreColor, flags, null);
         }
 
-        public static void DrawText(SKCanvas canvas, string text, Font font, Rectangle bounds, SKColor foreColor, TextFormatFlags flags, int cursorPosition)
+        public static void DrawText(SKCanvas canvas, string text, Font font, SKRect bounds, SKColor foreColor, TextFormatFlags flags, int cursorPosition)
         {
             var options = new TextPaintOptions();
             options.CursorPosition = cursorPosition;
@@ -660,10 +660,10 @@ namespace SkiaTextRenderer
             DrawText(canvas, text, font, bounds, foreColor, flags, options);
         }
 
-        public static SKPoint GetCursorDrawPosition(string text, Font font, Rectangle bounds, TextFormatFlags flags, int cursorPosition)
+        public static SKPoint GetCursorDrawPosition(string text, Font font, SKRect bounds, TextFormatFlags flags, int cursorPosition)
         {
             if (string.IsNullOrEmpty(text))
-                return new SKPoint(bounds.X, bounds.Y);
+                return new SKPoint(bounds.Left, bounds.Top);
 
             Text = text;
             Flags = flags;
@@ -677,7 +677,7 @@ namespace SkiaTextRenderer
             ComputeLetterPositionInBounds(ref bounds);
 
             if (cursorPosition <= 0)
-                return new SKPoint(bounds.X, bounds.Y);
+                return new SKPoint(bounds.Left, bounds.Top);
 
             LetterInfo letterInfo;
             FontLetterDefinition letterDef;
@@ -690,7 +690,7 @@ namespace SkiaTextRenderer
                 letterInfo = EnsureValidEndLetter(cursorPosition - 1);
 
                 if (letterInfo == null)
-                    return new SKPoint(bounds.X, bounds.Y);
+                    return new SKPoint(bounds.Left, bounds.Top);
 
                 FontCache.GetLetterDefinitionForChar(letterInfo.Character, out letterDef);
                 pos.X = letterInfo.PositionX + letterDef.AdvanceX;
@@ -702,7 +702,7 @@ namespace SkiaTextRenderer
             letterInfo = EnsureValidLetter(cursorPosition);
 
             if (letterInfo == null)
-                return new SKPoint(bounds.X, bounds.Y);
+                return new SKPoint(bounds.Left, bounds.Top);
 
             FontCache.GetLetterDefinitionForChar(letterInfo.Character, out letterDef);
             pos.X = letterInfo.PositionX;
@@ -711,12 +711,12 @@ namespace SkiaTextRenderer
             return pos;
         }
 
-        public static int GetCursorFromPoint(string text, Font font, Rectangle bounds, TextFormatFlags flags, SKPoint point)
+        public static int GetCursorFromPoint(string text, Font font, SKRect bounds, TextFormatFlags flags, SKPoint point)
         {
             return GetCursorFromPoint(text, font, bounds, flags, point, out var drawPos);
         }
 
-        public static int GetCursorFromPoint(string text, Font font, Rectangle bounds, TextFormatFlags flags, SKPoint point, out SKPoint cursorDrawPosition)
+        public static int GetCursorFromPoint(string text, Font font, SKRect bounds, TextFormatFlags flags, SKPoint point, out SKPoint cursorDrawPosition)
         {
             cursorDrawPosition = SKPoint.Empty;
 
