@@ -31,7 +31,7 @@ namespace SkiaTextRenderer.Test
 
             var fileName = CleanFileName($"{text}-{fontSize}-{flags}.png");
 
-            var size = TextRenderer.MeasureText(text, font, 0, flags);
+            var size = TextRendererSk.MeasureText(text, font, 0, flags);
             var BackColour = SKColors.Black;
 
             using (SKBitmap bitmap = new SKBitmap((int) size.Width, (int) size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
@@ -39,7 +39,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags);
+                TextRendererSk.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
@@ -61,7 +61,7 @@ namespace SkiaTextRenderer.Test
                 fileName = fileName.Replace(c, '_');
             }
 
-            var size = TextRenderer.MeasureText(text, font, 0, flags);
+            var size = TextRendererSk.MeasureText(text, font, 0, flags);
             var BackColour = SKColors.Black;
 
             using (SKBitmap bitmap = new SKBitmap((int) size.Width, (int) size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
@@ -69,7 +69,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags);
+                TextRendererSk.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
@@ -91,7 +91,7 @@ namespace SkiaTextRenderer.Test
                 fileName = fileName.Replace(c, '_');
             }
 
-            var size = TextRenderer.MeasureText(text, font, 0, flags);
+            var size = TextRendererSk.MeasureText(text, font, 0, flags);
             var BackColour = SKColors.Black;
 
             using (SKBitmap bitmap = new SKBitmap((int) size.Width, (int) size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
@@ -99,7 +99,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, SKRect.Create(0, -1, size.Width, size.Height), SKColors.White, flags);
+                TextRendererSk.DrawText(canvas, text, font, SKRect.Create(0, -1, size.Width, size.Height), SKColors.White, flags);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
@@ -121,7 +121,7 @@ namespace SkiaTextRenderer.Test
                 fileName = fileName.Replace(c, '_');
             }
 
-            var size = TextRenderer.MeasureText(text, font, 0, flags);
+            var size = TextRendererSk.MeasureText(text, font, 0, flags);
             var BackColour = SKColors.Black;
 
             using (SKBitmap bitmap = new SKBitmap((int) size.Width, (int) size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
@@ -129,7 +129,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags);
+                TextRendererSk.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
@@ -158,7 +158,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags);
+                TextRendererSk.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
@@ -176,7 +176,7 @@ namespace SkiaTextRenderer.Test
 
             var fileName = CleanFileName($"multiline-{text}-{fontSize}-{flags}.png");
 
-            var size = TextRenderer.MeasureText(text, font, 0, flags);
+            var size = TextRendererSk.MeasureText(text, font, 0, flags);
             var BackColour = SKColors.Black;
 
             using (SKBitmap bitmap = new SKBitmap((int) size.Width, (int) size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
@@ -184,7 +184,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags);
+                TextRendererSk.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
@@ -202,7 +202,7 @@ namespace SkiaTextRenderer.Test
 
             var fileName = CleanFileName($"DrawCursor-cursor({cursorPosition})-{text}-{fontSize}-{flags}.png");
 
-            var size = TextRenderer.MeasureText(text, font, 0, flags);
+            var size = TextRendererSk.MeasureText(text, font, 0, flags);
             var BackColour = SKColors.Black;
 
             using (SKBitmap bitmap = new SKBitmap((int) size.Width, (int) size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
@@ -210,7 +210,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags, cursorPosition);
+                TextRendererSk.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags, cursorPosition);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
@@ -235,7 +235,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags, cursorPosition);
+                TextRendererSk.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags, cursorPosition);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
@@ -253,7 +253,7 @@ namespace SkiaTextRenderer.Test
 
             var fileName = CleanFileName($"DrawSelection-start({options.SelectionStart})-end({options.SelectionEnd})-{text}-{fontSize}-{flags}.png");
 
-            var size = TextRenderer.MeasureText(text, font, 0, flags);
+            var size = TextRendererSk.MeasureText(text, font, 0, flags);
             var BackColour = SKColors.Black;
 
             using (SKBitmap bitmap = new SKBitmap((int) size.Width, (int) size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
@@ -261,7 +261,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags, options);
+                TextRendererSk.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags, options);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
@@ -279,7 +279,7 @@ namespace SkiaTextRenderer.Test
 
             var fileName = CleanFileName($"DrawSelectionMultiline-start({options.SelectionStart})-end({options.SelectionEnd})-{text}-{fontSize}-{flags}.png");
 
-            var size = TextRenderer.MeasureText(text, font, 0, flags);
+            var size = TextRendererSk.MeasureText(text, font, 0, flags);
             var BackColour = SKColors.Black;
 
             using (SKBitmap bitmap = new SKBitmap((int) size.Width, (int) size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
@@ -287,7 +287,7 @@ namespace SkiaTextRenderer.Test
             {
                 canvas.Clear(BackColour);
 
-                TextRenderer.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags, options);
+                TextRendererSk.DrawText(canvas, text, font, SKRect.Create(0, 0, size.Width, size.Height), SKColors.White, flags, options);
 
                 using (Stream s = File.Open(fileName, FileMode.Create))
                 {
