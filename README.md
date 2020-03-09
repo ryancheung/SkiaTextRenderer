@@ -1,4 +1,5 @@
 ![](https://github.com/ryancheung/SkiaTextRenderer/workflows/.NET%20Core/badge.svg)
+[![Nuget](https://img.shields.io/nuget/v/SkiaTextRenderer)](https://www.nuget.org/packages/SkiaTextRenderer/)
 
 ## A Winform-liked TextRenderer implemented with SkiaSharp
 
