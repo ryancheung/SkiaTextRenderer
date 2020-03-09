@@ -1,7 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SkiaSharp;
 using System.IO;
-using System.Drawing;
 
 namespace SkiaTextRenderer.UnitTest
 {

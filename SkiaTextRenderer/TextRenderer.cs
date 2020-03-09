@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using SkiaSharp;
-using System.Drawing;
 
 namespace SkiaTextRenderer
 {

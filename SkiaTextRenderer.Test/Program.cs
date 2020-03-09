@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using SkiaSharp;
 
@@ -142,7 +141,7 @@ namespace SkiaTextRenderer.Test
             Console.WriteLine("Drawing StrikeThrough {0} (fontSize {1}, flags {2}), measured size: {3}", text, fontSize, flags, size);
         }
 
-        static void TestDrawWithSize(string text, float fontSize, TextFormatFlags flags, Size size)
+        static void TestDrawWithSize(string text, float fontSize, TextFormatFlags flags, SKSize size)
         {
             var font = new Font(Typeface, fontSize);
 
@@ -154,7 +153,7 @@ namespace SkiaTextRenderer.Test
 
             var BackColour = SKColors.Black;
 
-            using (SKBitmap bitmap = new SKBitmap(size.Width, size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
+            using (SKBitmap bitmap = new SKBitmap((int) size.Width, (int) size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
             using (var canvas = new SKCanvas(bitmap))
             {
                 canvas.Clear(BackColour);
@@ -223,7 +222,7 @@ namespace SkiaTextRenderer.Test
             Console.WriteLine("Drawing with cursor {0} (fontSize {1}, flags {2}), measured size: {3}", text, fontSize, flags, size);
         }
 
-        static void TestDrawCursorMultiline(string text, float fontSize, TextFormatFlags flags, Size size, int cursorPosition)
+        static void TestDrawCursorMultiline(string text, float fontSize, TextFormatFlags flags, SKSize size, int cursorPosition)
         {
             var font = new Font(Typeface, fontSize);
 
@@ -231,7 +230,7 @@ namespace SkiaTextRenderer.Test
 
             var BackColour = SKColors.Black;
 
-            using (SKBitmap bitmap = new SKBitmap(size.Width, size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
+            using (SKBitmap bitmap = new SKBitmap((int) size.Width, (int) size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
             using (var canvas = new SKCanvas(bitmap))
             {
                 canvas.Clear(BackColour);
@@ -313,11 +312,11 @@ namespace SkiaTextRenderer.Test
             TestDrawUnderline("Hello 你好 world!", 20, TextFormatFlags.Default);
             TestDrawStrikeThrough("Hello 你好 world!", 20, TextFormatFlags.Default);
 
-            TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.Default, new Size(200, 80));
-            TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.VerticalCenter, new Size(100, 80));
-            TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80));
-            TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80));
-            TestDrawWithSize("Hel\nl\r\no 你\n好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine, new Size(80, 20));
+            TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.Default, new SKSize(200, 80));
+            TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.VerticalCenter, new SKSize(100, 80));
+            TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new SKSize(80, 80));
+            TestDrawWithSize("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new SKSize(80, 80));
+            TestDrawWithSize("Hel\nl\r\no 你\n好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine, new SKSize(80, 20));
 
             TestDrawMultiline("Hello 你\n好 world!", 20, TextFormatFlags.Default);
 
@@ -327,11 +326,11 @@ namespace SkiaTextRenderer.Test
             TestDrawCursor("Hello 你好 world!", 20, TextFormatFlags.Default, 6);
             TestDrawCursor("Hello 你好 world!", 20, TextFormatFlags.Default, 14);
 
-            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), -1);
-            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), 2);
-            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), 6);
-            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), 10);
-            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new Size(80, 80), 14);
+            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new SKSize(80, 80), -1);
+            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new SKSize(80, 80), 2);
+            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new SKSize(80, 80), 6);
+            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new SKSize(80, 80), 10);
+            TestDrawCursorMultiline("Hello 你好 world!", 12, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, new SKSize(80, 80), 14);
 
             TestDrawSelection("Hello 你好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = 0, SelectionEnd = 2 });
             TestDrawSelection("Hello 你好 world!", 20, TextFormatFlags.Default, new TextPaintOptions() { SelectionStart = 0, SelectionEnd = 15 });
