@@ -67,10 +67,12 @@ nuget install SkiaTextRenderer
 
 ### Usage
 
+**note `TextRenderer` class is deprecated and will be removed in v2.1.0, please use the new `TextRendererSk` instead.**
+
 ```csharp
 static void TestDraw(string text, Font font, TextFormatFlags flags)
 {
-    var size = TextRenderer.MeasureText(text, font, 0, flags);
+    var size = TextRendererSk.MeasureText(text, font, 0, flags);
     var BackColour = SKColors.Black;
 
     using (SKBitmap bitmap = new SKBitmap(size.Width, size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul))
@@ -78,7 +80,7 @@ static void TestDraw(string text, Font font, TextFormatFlags flags)
     {
         canvas.Clear(BackColour);
 
-        TextRenderer.DrawText(canvas, text, font, new Rectangle(0, 0, size.Width, size.Height), SKColors.White, flags);
+        TextRendererSk.DrawText(canvas, text, font, new Rectangle(0, 0, size.Width, size.Height), SKColors.White, flags);
 
         using (Stream s = File.Open(fileName, FileMode.Create))
         {
